@@ -1,0 +1,25 @@
+{
+    "author": "nic ferrier, nic@ferrier.me.uk",
+    "name": "nichat",
+    "description": "nic's chat, or ni chat if you prefer",
+    "version": "0.0.1",
+    "repository": "",
+    "main": "./server.js",
+    "scripts": {
+        "test": "./test.js"
+    },
+    "dependencies": {
+        "express": "4.14.0",
+        "serve-index": "1.8.0",
+        "body-parser": "1.17.1",
+        "sse-node": "1.0.2"
+    },
+    "devDependencies": {
+        "deep-equal": "1.0.1",
+        "assert-promise": "0.0.3",
+        "sha1": "1.1.1"
+    },
+    "engines": {
+        "node": ">=0.6"
+    }
+}

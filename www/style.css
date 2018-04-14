@@ -1,0 +1,94 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: row;
+}
+
+.control {
+    background-color: #232b2b;
+    width: 75px;
+    height: 100%;
+}
+
+.index {
+    background-color: #E0E0E0;
+    width: 20%;
+    height: 100%;
+}
+
+body article {
+    display: flex;
+    height: 100%;
+    flex: 1;
+    flex-direction: column;
+    background-color: #F5F5F5;
+}
+
+.chat-header {
+    height: 50px;
+    flex: initial;
+    border-bottom: solid 1px #E1E1E1;
+    vertical-align: center;
+}
+
+.chat {
+    flex-grow: 2;
+    margin: 5%;
+}
+
+.entry {
+    height: 100px;
+    flex: initial;
+    flex-direction: column;
+    display: flex;
+    background-color: White;
+}
+
+.entry-control {
+    height: 20px;
+    flex: initial;
+}
+
+.entry input {
+    height: 100%;
+    width: 100%;
+    background-color: White;
+}
+
+.me, .other {
+    width: 100%;
+    margin-bottom: 12px;
+    padding-bottom: 2px;
+    border-bottom: solid 1px #E7E7E7;
+}
+
+.me img, .other img {
+    height: 50px;
+    width: 50px;
+}
+
+.me span, .other span {
+    vertical-align: top;
+    background-color: #F9F9F9;
+}
+
+.me {
+    text-align: right;
+}
+
+.me img {
+    margin-left: 10px;
+}
+
+.other {
+    text-align: left;
+}
+
+.other img {
+    margin-right: 10px;
+}
+
