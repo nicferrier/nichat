@@ -30,9 +30,12 @@ body article {
 
 .chat-header {
     height: 50px;
+    line-height: 50px;
+    margin: 1px;
     flex: initial;
+    display: inline;
     border-bottom: solid 1px #E1E1E1;
-    vertical-align: center;
+    vertical-align: middle;
 }
 
 .chat {
@@ -41,7 +44,7 @@ body article {
 }
 
 .entry {
-    height: 100px;
+    height: 150px;
     flex: initial;
     flex-direction: column;
     display: flex;
@@ -53,7 +56,7 @@ body article {
     flex: initial;
 }
 
-.entry input {
+.entry textarea {
     height: 100%;
     width: 100%;
     background-color: White;

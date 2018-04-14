@@ -19,11 +19,12 @@ window.addEventListener("load", evt => {
 
     commsWorker.port.start();
 
-    let msgInput = document.querySelector("input[name=chat]");
+    let msgInput = document.querySelector("textarea[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {
         if (keyEvt.code == "Enter") {
             queueMessage(msgInput.value, "somechat", commsWorker.port);
             msgInput.value = "";
+            keyEvt.preventDefault();
         }
     });
 });
