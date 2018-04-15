@@ -20,7 +20,7 @@ function sendChat (from, to, text) {
     fd.append("text", text);
     console.log("sending", fd);
     fetch(to, {
-        method: 'PUT',
+        method: 'POST',
         body: fd
     }).then(response => response.status)
         .catch(error => console.error('Error:', error))

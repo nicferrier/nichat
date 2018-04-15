@@ -59,7 +59,7 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.put("/nichat/([A-Za-z0-9-]+)/msg",
+    app.post("/nichat/([A-Za-z0-9-]+)/msg",
             mpParser.fields([]),
             function (req, response) {
                 let data = req.body;

@@ -84,8 +84,10 @@ body article {
     margin-right: 10px;
 }
 
-
-
+.chat-time {
+    width: 100%;
+    text-align: center;
+}
 
 
 .entry {
