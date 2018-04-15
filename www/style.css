@@ -33,33 +33,22 @@ body article {
     line-height: 50px;
     margin: 1px;
     flex: initial;
-    display: inline;
     border-bottom: solid 1px #E1E1E1;
+}
+
+.chat-header h2 {
+    text-align: right;
+    display: inline;
+    vertical-align: middle;
+}
+
+.chat-header span {
     vertical-align: middle;
 }
 
 .chat {
     flex-grow: 2;
     margin: 5%;
-}
-
-.entry {
-    height: 150px;
-    flex: initial;
-    flex-direction: column;
-    display: flex;
-    background-color: White;
-}
-
-.entry-control {
-    height: 20px;
-    flex: initial;
-}
-
-.entry textarea {
-    height: 100%;
-    width: 100%;
-    background-color: White;
 }
 
 .me, .other {
@@ -95,3 +84,36 @@ body article {
     margin-right: 10px;
 }
 
+
+
+
+
+.entry {
+    height: 150px;
+    flex: initial;
+    flex-direction: column;
+    display: flex;
+    background-color: White;
+}
+
+.entry-control {
+    height: 20px;
+    flex: initial;
+}
+
+.entry div {
+    margin: 10px;
+    flex: 1;
+}
+
+.entry div textarea {
+    width: 100%;
+    height: 100%;
+    background-color: White;
+    border: none;
+    outline:none !important;
+}
+
+.entry div textarea:focus {
+    outline:none !important;
+}

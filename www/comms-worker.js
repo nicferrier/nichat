@@ -12,6 +12,21 @@ es.addEventListener("chat", chatEvt => {
     console.log("chatEvt", chatEvt);
 });
 
+
+function sendChat (from, to, text) {
+    let fd = new FormData();
+    fd.append("from", from);
+    fd.append("to", to);
+    fd.append("text", text);
+    console.log("sending", fd);
+    fetch(to, {
+        method: 'PUT',
+        body: fd
+    }).then(response => response.status)
+        .catch(error => console.error('Error:', error))
+            .then(response => console.log('Success:', response));
+}
+
 onconnect = function (connectEvt) {
     let port = connectEvt.ports[0];
     clients.push(port);
@@ -23,6 +38,7 @@ onconnect = function (connectEvt) {
             if (type == "to") {
                 let {message, space, from} = data;
                 // can we tell what client this came from so we can go back to them?
+                sendChat(from, space, message);
                 console.log("message send from", from,
                             "on space", space,
                             "msg?", message);
@@ -34,7 +50,7 @@ onconnect = function (connectEvt) {
             }
         }
         catch (ex) {
-            console.log("got an exception on a pushed message", msgEvt);
+            console.log("got an exception on a pushed message", msgEvt, ex);
         }
     });
 

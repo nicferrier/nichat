@@ -6,7 +6,12 @@ function queueMessage(text, toSpace, workerPort) {
     chatter.content.querySelector("span").textContent = text;
     chatter.content.querySelector("img").src = "photos/nic.jpg";
     chat.appendChild(document.importNode(chatter.content, true));
-    let msg = {type: "to", message: text, space: toSpace, from: me };
+    let msg = {
+        type: "to",
+        message: text,
+        space: document.location.href + "blah/msg",
+        from: me
+    };
     workerPort.postMessage([msg]);
 }
 

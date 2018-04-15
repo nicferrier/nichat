@@ -2,9 +2,12 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
 const ElizaBot = require("./elizabot.js");
+
+const mpParser = multer();
 
 
 // We can get an eliza to talk, sort of like this
@@ -56,11 +59,13 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.post("/nichat/([A-Za-z0-9-]+)/msg", function (req, response) {
-        let data = req.body;
-        console.log("data", data);
-        response.sendStatus(204);
-    });
+    app.put("/nichat/([A-Za-z0-9-]+)/msg",
+            mpParser.fields([]),
+            function (req, response) {
+                let data = req.body;
+                console.log("data", data);
+                response.sendStatus(204);
+            });
 
     app.listen(port, "localhost", function () {
         console.log("listening on " + port);
