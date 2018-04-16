@@ -52,7 +52,7 @@ exports.boot = function (port, options) {
     app.use("/nichat", express.static(rootDir));
 
     app.get("/", function (req, response) {
-        console.log("redirecting o routed path /nichat");
+        console.log("redirecting to routed path /nichat");
         response.redirect("/nichat");
     });
 
@@ -64,7 +64,8 @@ exports.boot = function (port, options) {
     // What chats have you got?
     app.get("/nichat/chats/", function (req, response) {
         let chats = {
-            "raj": "rajandnic"
+            "raj": "rajandnic",
+            "audrey": "audreyandnic"
         };
         response.json(chats);
     });
@@ -84,7 +85,6 @@ exports.boot = function (port, options) {
     });
 
     app.get("/nichat/:collection([A-Za-z0-9-]+)/msg", function (req, response) {
-        console.log("path", req.params);
         let { collection } = req.params;
         response.status(200);
         getChat(collection, function (data) {
@@ -95,8 +95,8 @@ exports.boot = function (port, options) {
     app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
             mpParser.fields([]),
             function (req, response) {
-                let data = req.body;
-                console.log("data", data);
+                let { from, to, text } = req.body;
+                console.log("data", from, to, text);
                 response.sendStatus(204);
             });
 

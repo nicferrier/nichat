@@ -5,16 +5,15 @@ function chatTimeFormat (time) {
     return time.toLocaleString();
 }
 
+const photos = {
+    "nicferrier@localhost": "photos/nic.jpg",
+    "rajesh.shah@localhost": "photos/raj.jpg",
+    "dan.flower@localhost": "photos/dan.jpg",
+    "audrey@localhost": "photos/audrey.jpg"
+};
+
 function getPhoto(from) {
-    if (from == "nicferrier@localhost") {
-        return "photos/nic.jpg";
-    }
-    else if (from == "rajesh.shah@localhost") {
-        return "photos/raj.jpg";
-    }
-    else if (from == "dan.flower@localhost") {
-        return "photos/dan.jpg";
-    }
+    return photos[from];
 }
 
 function displayChatTime (chat, msgTime) {
@@ -59,6 +58,7 @@ function displayMessage(msgTime, text, toSpace, from) {
         div.appendChild(span);
     }
     chat.appendChild(document.importNode(div, true));
+    chat.scrollTop = chat.scrollHeight;
 }
 
 function queueMessage(msgTime, text, toSpace, from, workerPort) {
@@ -105,8 +105,10 @@ async function getChats() {
     let chats = await response.json();
     let myChatNames = Object.keys(chats);
     let chatsIndex = document.querySelector("section.index");
+    let length = myChatNames.length;
     myChatNames.forEach(async function (chat, i) {
         let spaceName = chats[chat];
+        console.log(spaceName, i);
         let json = await getChat(spaceName);
         let members = json.members;
         let membersNotMe = members.filter(member => member != me);
