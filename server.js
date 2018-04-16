@@ -1,10 +1,13 @@
 
+const fs = require('fs');
+const { URL } = require('url');
 
 const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
+
 const ElizaBot = require("./elizabot.js");
 
 const mpParser = multer();
@@ -15,6 +18,14 @@ function testEliza () {
     let eliza = new ElizaBot();
     console.log(eliza.getInitial());
     console.log(eliza.transform("I've been wondering if you'd be a good test"));
+}
+
+function getChat (name, outFunc) {
+    fs.readFile("example-chats/" + name + ".json", (err, data) => {
+        if (err) throw err;
+        let obj = JSON.parse(data);
+        outFunc(obj);
+    });
 }
 
 
@@ -45,6 +56,19 @@ exports.boot = function (port, options) {
         response.redirect("/nichat");
     });
 
+    app.get("/nichat/people/", function (req, response) {
+        console.log("request", request);
+        response.sendStatus(204);
+    });
+
+    // What chats have you got?
+    app.get("/nichat/chats/", function (req, response) {
+        let chats = {
+            "raj": "rajandnic"
+        };
+        response.json(chats);
+    });
+
     // Handle the distribution of chats
     const connections = {};
     
@@ -59,7 +83,16 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.post("/nichat/([A-Za-z0-9-]+)/msg",
+    app.get("/nichat/:collection([A-Za-z0-9-]+)/msg", function (req, response) {
+        console.log("path", req.params);
+        let { collection } = req.params;
+        response.status(200);
+        getChat(collection, function (data) {
+            response.json(data)
+        });
+    });
+
+    app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
             mpParser.fields([]),
             function (req, response) {
                 let data = req.body;

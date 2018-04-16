@@ -1,0 +1,14 @@
+{
+    "name": "Raj",
+    "name-comment": "how do we get this so each person can name the chat?",
+    "members": ["rajesh.shah@localhost", "nicferrier@localhost"],
+    "messages":
+    [{"datetime":1523739600000,
+      "text": "hi Raj",
+      "from": "nicferrier@localhost",
+      "to": "rajesh.shah@localhost"},
+     {"datetime":1523740200000,
+      "text": "hi, what's up?",
+      "from": "rajesh.shah@localhost",
+      "to": "nicferrier@localhost"}]
+}
