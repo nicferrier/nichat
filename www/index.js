@@ -1,6 +1,11 @@
 const me = "nicferrier@localhost";
 var chats = {};
 
+window.consoleChats = function () {
+    console.log("chats", chats);
+}
+
+
 function chatTimeFormat (time) {
     return time.toLocaleString();
 }
@@ -85,19 +90,9 @@ function displayChat(json) {
 }
 
 async function getChat(spaceName) {
+    console.log("getChat", spaceName);
     return fetch(document.location.href + spaceName + "/msg")
         .then(response => response.json())
-}
-
-function clickTarget(element, continuation) {
-    element.addEventListener("click", clickEvt => {
-        continuation(clickEvt);
-    });
-    element.addEventListener("keypress", keyEvt => {
-        if (keyEvt.code == "Enter") {
-            continuation(keyEvt);
-        }
-    });
 }
 
 async function getChats() {
@@ -114,17 +109,20 @@ async function getChats() {
         let membersNotMe = members.filter(member => member != me);
         let photos = membersNotMe.map(getPhoto)
         console.log("members", photos);
-        let section = document.createElement("section");
-        section.setAttribute("data-spacename", spaceName);
+        let section = document.createElement("a");
+        section.setAttribute("href", spaceName);
         section.setAttribute("tabindex", i);
         section.textContent = chat;
         let img = document.createElement("img");
         img.src = photos[0];
         section.appendChild(img);
         let element = document.importNode(section, true);
-        clickTarget(element, evt => {
-            let spaceName = evt.target.getAttribute("data-spacename");
+        element.addEventListener("click", function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            let spaceName = evt.currentTarget.getAttribute("href");
             getChat(spaceName).then(displayChat);
+            return false;
         });
         chatsIndex.appendChild(element);
     });
