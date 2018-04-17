@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
+const EventSource = require("eventsource");
 
 const ElizaBot = require("./elizabot.js");
 
@@ -41,6 +42,14 @@ function getRemoteAddr(request) {
     return remoteAddr;
 }
 
+function elizaStart() {
+    console.log("setting up eliza");
+    var es = new EventSource("http://localhost:8081/nichat/comms");
+    es.addEventListener("chat", ev => {
+        console.log("eliza got", ev);
+    });
+}
+
 exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : "www";
@@ -64,8 +73,8 @@ exports.boot = function (port, options) {
     // What chats have you got?
     app.get("/nichat/chats/", function (req, response) {
         let chats = {
-            "raj": "rajandnic",
-            "audrey": "audreyandnic"
+            "raj": { "spaceName": "rajandnic" },
+            "audrey": { "spaceName": "audreyandnic" }
         };
         response.json(chats);
     });
@@ -75,6 +84,8 @@ exports.boot = function (port, options) {
     
     app.get("/nichat/comms", function (req, response) {
         let remoteAddr = getRemoteAddr(req);
+        console.log("wiring up comms from", remoteAddr);
+
         let connection = SSE(req, response, {ping: 10*1000});
         connection.onClose(closeEvt => {
             console.log("sse closed");
@@ -93,15 +104,22 @@ exports.boot = function (port, options) {
     });
 
     app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
-            mpParser.fields([]),
-            function (req, response) {
-                let { from, to, text } = req.body;
-                console.log("data", from, to, text);
-                response.sendStatus(204);
-            });
-
+             mpParser.fields([]),
+             function (req, response) {
+                 let data = req.body;
+                 let { from, to, text } = data;
+                 console.log("data", from, to, text);
+                 Object.keys(connections).forEach(connectionKey => {
+                   let connection = connections[connectionKey];
+                   console.log("exchange sending chat to", connectionKey);
+                   connection.send(data, "chat");
+                 });
+                 response.sendStatus(204);
+             });
+    
     app.listen(port, "localhost", function () {
         console.log("listening on " + port);
+        elizaStart();
     });
 };
 

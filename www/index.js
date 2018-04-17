@@ -97,13 +97,15 @@ async function getChat(spaceName) {
 
 async function getChats() {
     let response = await fetch(document.location.href + "chats");
-    let chats = await response.json();
-    let myChatNames = Object.keys(chats);
+    let myChats = await response.json();
+    chats = myChats;
+    let myChatNames = Object.keys(myChats);
     let chatsIndex = document.querySelector("section.index");
     let length = myChatNames.length;
     myChatNames.forEach(async function (chat, i) {
-        let spaceName = chats[chat];
-        console.log(spaceName, i);
+        let spaceName = myChats[chat].spaceName;
+        chats[chat].loaded = false;
+        console.log(spaceName, "tabindex", i);
         let json = await getChat(spaceName);
         let members = json.members;
         let membersNotMe = members.filter(member => member != me);
@@ -111,6 +113,7 @@ async function getChats() {
         console.log("members", photos);
         let section = document.createElement("a");
         section.setAttribute("href", spaceName);
+        section.setAttribute("data-chatname", chat);
         section.setAttribute("tabindex", i);
         section.textContent = chat;
         let img = document.createElement("img");
@@ -120,8 +123,14 @@ async function getChats() {
         element.addEventListener("click", function (evt) {
             evt.preventDefault();
             evt.stopPropagation();
-            let spaceName = evt.currentTarget.getAttribute("href");
-            getChat(spaceName).then(displayChat);
+            let chatName = evt.currentTarget.getAttribute("data-chatname");
+            if (chats[chatName].loaded != true) {
+                chats[chatName].loaded = true;
+                let spaceName = evt.currentTarget.getAttribute("href");
+                getChat(spaceName).then(displayChat);
+            }
+            else {
+            }
             return false;
         });
         chatsIndex.appendChild(element);
