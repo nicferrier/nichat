@@ -9,7 +9,19 @@ es.addEventListener("meta", metaEvt => {
 });
 
 es.addEventListener("chat", chatEvt => {
-    console.log("chatEvt", chatEvt);
+    try {
+        let data = chatEvt.data;
+        let object = JSON.parse(data);
+        let { from, to, text } = object;
+        clients.forEach(clientPort => {
+            clientPort.postMessage(data);
+        });
+        
+        console.log("chat received", from, to, text);
+    }
+    catch (e) {
+        console.log("error while handling chatEvt", e);
+    }
 });
 
 

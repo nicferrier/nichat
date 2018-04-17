@@ -8,6 +8,9 @@ const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
 const EventSource = require("eventsource");
+const http = require("http");
+const querystring = require("querystring");
+const FormData = require('form-data');
 
 const ElizaBot = require("./elizabot.js");
 
@@ -44,9 +47,25 @@ function getRemoteAddr(request) {
 
 function elizaStart() {
     console.log("setting up eliza");
+    let eliza = new ElizaBot();
+    eliza.getInitial("hello eliza");
     var es = new EventSource("http://localhost:8081/nichat/comms");
     es.addEventListener("chat", ev => {
-        console.log("eliza got", ev);
+        let packet = JSON.parse(ev.data);
+        console.log("elize packet", packet);
+        let { from, text, to } = packet;
+        if (to == "http://localhost:8081/nichat/audreyandnic/msg"
+            && from != "audrey@localhost") {
+            let elizaSays = eliza.transform(text);
+            console.log("eliza reply", elizaSays);
+            let form = new FormData();
+            form.append("from", "audrey@localhost",);
+            form.append("to", to);
+            form.append("text", elizaSays);
+            form.submit("http://localhost:8081/nichat/audreyandnic/msg", (err, res) => {
+                console.log("response to eliza post", res.statusCode);
+            });
+        }
     });
 }
 
@@ -106,13 +125,15 @@ exports.boot = function (port, options) {
     app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
              mpParser.fields([]),
              function (req, response) {
+                 console.log("collection received message post");
                  let data = req.body;
                  let { from, to, text } = data;
                  console.log("data", from, to, text);
                  Object.keys(connections).forEach(connectionKey => {
-                   let connection = connections[connectionKey];
-                   console.log("exchange sending chat to", connectionKey);
-                   connection.send(data, "chat");
+                     let connection = connections[connectionKey];
+                     data["type"] = "from";
+                     console.log("exchange sending chat to", connectionKey, data);
+                     connection.send(data, "chat");
                  });
                  response.sendStatus(204);
              });

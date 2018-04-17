@@ -76,8 +76,8 @@ body article {
     flex-grow: 2;
     padding-left: 15px;
     padding-right: 15px;
-    overflow-y: auto;
     height: 100%;
+    overflow-y: auto;
 }
 
 .me, .other {

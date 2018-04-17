@@ -30,8 +30,15 @@ function displayChatTime (chat, msgTime) {
     chat.appendChild(document.importNode(spacer, true));
 }
 
+function chatDiv(container) {
+    let div = document.createElement("div");
+    let divNode = document.importNode(div, true);
+    container.appendChild(divNode);
+    return divNode;
+}
+
 function displayMessage(msgTime, text, toSpace, from) {
-    let chat = document.querySelector("section.chat");
+    let chat = document.querySelector("section.chat div");
     if (chat.children.length == 0) {
         displayChatTime(chat, msgTime);
     }
@@ -63,14 +70,14 @@ function displayMessage(msgTime, text, toSpace, from) {
         div.appendChild(span);
     }
     chat.appendChild(document.importNode(div, true));
-    chat.scrollTop = chat.scrollHeight;
+    chat.parentNode.scrollTop = chat.parentNode.scrollHeight;
 }
 
 function queueMessage(msgTime, text, toSpace, from, workerPort) {
     let msg = {
         type: "to",
         message: text,
-        space: document.location.href + "blah/msg",
+        space: toSpace,
         from: from
     };
     workerPort.postMessage([msg]);
@@ -78,9 +85,20 @@ function queueMessage(msgTime, text, toSpace, from, workerPort) {
 }
 
 function displayChat(json) {
-    let { name, messages } = json;
+    let { url, name, messages } = json;
+    document.querySelector(".chat-header")
+        .parentNode
+        .setAttribute("data-url", url);
     let headerH2 = document.querySelectorAll(".chat-header h2");
     headerH2[0].textContent = name;
+    let div = document.querySelector(".chat div");
+    if (div != null) {
+        console.log("div", div);
+        div.parentNode.removeChild(div);
+    }
+    div = document.importNode(document.createElement("div"));
+    document.querySelector(".chat").appendChild(div);
+
     messages.forEach(message => {
         let { datetime, text, from, to } = message;
         console.log("message", datetime, text);
@@ -91,8 +109,11 @@ function displayChat(json) {
 
 async function getChat(spaceName) {
     console.log("getChat", spaceName);
-    return fetch(document.location.href + spaceName + "/msg")
-        .then(response => response.json())
+    let url = document.location.href + spaceName + "/msg";
+    let jsonData = await fetch(url).then(response => response.json());
+    jsonData["url"] = url;
+    console.log("jsonData", jsonData);
+    return jsonData;
 }
 
 async function getChats() {
@@ -114,7 +135,7 @@ async function getChats() {
         let section = document.createElement("a");
         section.setAttribute("href", spaceName);
         section.setAttribute("data-chatname", chat);
-        section.setAttribute("tabindex", i);
+        section.setAttribute("tabindex", i + 1);
         section.textContent = chat;
         let img = document.createElement("img");
         img.src = photos[0];
@@ -124,13 +145,8 @@ async function getChats() {
             evt.preventDefault();
             evt.stopPropagation();
             let chatName = evt.currentTarget.getAttribute("data-chatname");
-            if (chats[chatName].loaded != true) {
-                chats[chatName].loaded = true;
-                let spaceName = evt.currentTarget.getAttribute("href");
-                getChat(spaceName).then(displayChat);
-            }
-            else {
-            }
+            let spaceName = evt.currentTarget.getAttribute("href");
+            getChat(spaceName).then(displayChat);
             return false;
         });
         chatsIndex.appendChild(element);
@@ -140,7 +156,15 @@ async function getChats() {
 window.addEventListener("load", evt => {
     let commsWorker = new SharedWorker("comms-worker.js");
     commsWorker.port.addEventListener("message", msgEvt => {
-        console.log("worker message", msgEvt);
+        let data = msgEvt.data;
+        let object = JSON.parse(data);
+        let currentChatUrl = document.querySelector("body article")
+            .getAttribute("data-url");
+        let { from, to, text } = object;
+        if (from != me && to == currentChatUrl) {
+            displayMessage(new Date(), text, to, from);
+        }
+        console.log("worker message", msgEvt, from, to, text);
     });
     commsWorker.port.start();
 
@@ -149,7 +173,11 @@ window.addEventListener("load", evt => {
     let msgInput = document.querySelector("textarea[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {
         if (keyEvt.code == "Enter") {
-            queueMessage(new Date(), msgInput.value, "somechat", me, commsWorker.port);
+            let now = new Date();
+            let text = msgInput.value;
+            let spaceUrl = document.querySelector("body article")
+                .getAttribute("data-url");
+            queueMessage(now, text, spaceUrl, me, commsWorker.port);
             msgInput.value = "";
             keyEvt.preventDefault();
         }
