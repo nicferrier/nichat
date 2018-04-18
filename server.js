@@ -7,32 +7,10 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
-const EventSource = require("eventsource");
 const http = require("http");
-const querystring = require("querystring");
-const FormData = require('form-data');
-
-const ElizaBot = require("./elizabot.js");
+const eliza = require("./eliza");
 
 const mpParser = multer();
-
-
-// We can get an eliza to talk, sort of like this
-function testEliza () {
-    let eliza = new ElizaBot();
-    console.log(eliza.getInitial());
-    console.log(eliza.transform("I've been wondering if you'd be a good test"));
-}
-
-function getChat (name, outFunc) {
-    fs.readFile("example-chats/" + name + ".json", (err, data) => {
-        if (err) throw err;
-        let obj = JSON.parse(data);
-        outFunc(obj);
-    });
-}
-
-
 const app = express();
 
 function getRemoteAddr(request) {
@@ -45,27 +23,11 @@ function getRemoteAddr(request) {
     return remoteAddr;
 }
 
-function elizaStart() {
-    console.log("setting up eliza");
-    let eliza = new ElizaBot();
-    eliza.getInitial("hello eliza");
-    var es = new EventSource("http://localhost:8081/nichat/comms");
-    es.addEventListener("chat", ev => {
-        let packet = JSON.parse(ev.data);
-        console.log("elize packet", packet);
-        let { from, text, to } = packet;
-        if (to == "http://localhost:8081/nichat/audreyandnic/msg"
-            && from != "audrey@localhost") {
-            let elizaSays = eliza.transform(text);
-            console.log("eliza reply", elizaSays);
-            let form = new FormData();
-            form.append("from", "audrey@localhost",);
-            form.append("to", to);
-            form.append("text", elizaSays);
-            form.submit("http://localhost:8081/nichat/audreyandnic/msg", (err, res) => {
-                console.log("response to eliza post", res.statusCode);
-            });
-        }
+function getChat (name, outFunc) {
+    fs.readFile("example-chats/" + name + ".json", (err, data) => {
+        if (err) throw err;
+        let obj = JSON.parse(data);
+        outFunc(obj);
     });
 }
 
@@ -122,6 +84,9 @@ exports.boot = function (port, options) {
         });
     });
 
+
+    var chats = {};
+    
     app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
              mpParser.fields([]),
              function (req, response) {
@@ -140,7 +105,7 @@ exports.boot = function (port, options) {
     
     app.listen(port, "localhost", function () {
         console.log("listening on " + port);
-        elizaStart();
+        eliza.start();
     });
 };
 

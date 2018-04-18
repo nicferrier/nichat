@@ -2,8 +2,5 @@
     "name": "Audrey",
     "members": ["audrey@localhost", "nicferrier@localhost"],
     "messages":
-    [{"datetime":1523739600000,
-      "text": "hi Audrey",
-      "from": "nicferrier@localhost",
-      "to": "audrey@localhost"}]
+    []
 }
