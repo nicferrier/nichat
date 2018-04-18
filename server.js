@@ -76,7 +76,7 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.get("/nichat/:collection([A-Za-z0-9-]+)/msg", function (req, response) {
+    app.get("/nichat/chat/:collection([A-Za-z0-9-]+)", function (req, response) {
         let { collection } = req.params;
         response.status(200);
         getChat(collection, function (data) {
@@ -84,10 +84,7 @@ exports.boot = function (port, options) {
         });
     });
 
-
-    var chats = {};
-    
-    app.post("/nichat/:collection([A-Za-z0-9-]+)/msg",
+    app.post("/nichat/chat/:collection([A-Za-z0-9-]+)",
              mpParser.fields([]),
              function (req, response) {
                  console.log("collection received message post");

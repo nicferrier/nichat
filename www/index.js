@@ -1,10 +1,14 @@
 const me = "nicferrier@localhost";
 var chats = {};
+var state = {};
 
 window.consoleChats = function () {
     console.log("chats", chats);
 }
 
+window.consoleState = function () {
+    console.log("state", state);
+}
 
 function chatTimeFormat (time) {
     return time.toLocaleString();
@@ -86,6 +90,7 @@ function queueMessage(msgTime, text, toSpace, from, workerPort) {
 
 function displayChat(json) {
     let { url, name, messages } = json;
+    history.pushState(state, name, url);
     document.querySelector(".chat-header")
         .parentNode
         .setAttribute("data-url", url);
@@ -109,7 +114,7 @@ function displayChat(json) {
 
 async function getChat(spaceName) {
     console.log("getChat", spaceName);
-    let url = document.location.href + spaceName + "/msg";
+    let url = document.location.href + "chat/" + spaceName;
     let jsonData = await fetch(url).then(response => response.json());
     jsonData["url"] = url;
     console.log("jsonData", jsonData);
@@ -169,6 +174,10 @@ window.addEventListener("load", evt => {
     commsWorker.port.start();
 
     getChats();
+
+    window.onpopstate = function (evt) {
+        console.log("popstate", evt);
+    };
 
     let msgInput = document.querySelector("textarea[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {
