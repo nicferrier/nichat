@@ -115,7 +115,9 @@ function displayChat(json) {
     }
     div = document.importNode(document.createElement("div"));
     document.querySelector(".chat").appendChild(div);
-    document.querySelector(".entry div textarea").removeAttribute("disabled");
+    let textArea = document.querySelector(".entry div textarea");
+    textArea.removeAttribute("disabled");
+    textArea.focus();
     messages.forEach(message => {
         let { datetime, text, from, to } = message;
         console.log("message", datetime, text);
