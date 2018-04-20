@@ -14,15 +14,26 @@ function chatTimeFormat (time) {
     return time.toLocaleString();
 }
 
-const photos = {
-    "nicferrier@localhost": "photos/nic.jpg",
-    "rajesh.shah@localhost": "photos/raj.jpg",
-    "dan.flower@localhost": "photos/dan.jpg",
-    "audrey@localhost": "photos/audrey.jpg"
-};
+var photosList = {}
 
-function getPhoto(from) {
-    return photos[from];
+async function getUserPhoto(username)
+{
+    if (photosList[username] === undefined) {
+        console.log("photo trying to retrieve for", username);
+        let url = document.location.origin
+            + "/" + document.location.pathname.split("/")[1]
+            + "/people/"
+            + username;
+        console.log("photo", url);
+        let response = await fetch(url);
+        let json = await response.json();
+        let { photo } = await json;
+        photosList[username] = photo;
+        return photo;
+    }
+    else {
+        return photosList[username];
+    }
 }
 
 function displayChatTime (chat, msgTime) {
@@ -41,7 +52,7 @@ function chatDiv(container) {
     return divNode;
 }
 
-function displayMessage(msgTime, text, toSpace, from) {
+async function displayMessage(msgTime, text, toSpace, from) {
     let chat = document.querySelector("section.chat div");
     if (chat.children.length == 0) {
         displayChatTime(chat, msgTime);
@@ -61,7 +72,7 @@ function displayMessage(msgTime, text, toSpace, from) {
     div.setAttribute("data-datetime-string", msgTime.toString());
     div.classList.add(from == me ? "me":"other");
     let img = document.createElement("img");
-    let photoUrl = getPhoto(from);
+    let photoUrl = await getUserPhoto(from);
     img.src = photoUrl;
     let span = document.createElement("span");
     span.textContent = text;
@@ -84,6 +95,7 @@ function queueMessage(msgTime, text, toSpace, from, workerPort) {
         space: toSpace,
         from: from
     };
+    console.log("queueMessage", msg);
     workerPort.postMessage([msg]);
     displayMessage(msgTime, text, toSpace, from, workerPort);
 }
@@ -112,33 +124,53 @@ function displayChat(json) {
     return json;
 }
 
-async function getChat(spaceName) {
-    console.log("getChat", spaceName);
-    let url = document.location.href + "chat/" + spaceName;
-    let jsonData = await fetch(url).then(response => response.json());
-    jsonData["url"] = url;
+async function getChat(spaceNameUrl) {
+    console.log("getChat", spaceNameUrl);
+    let response = await fetch(spaceNameUrl + "?json=1");
+    let jsonData = await response.json();
+    jsonData["url"] = spaceNameUrl;
     console.log("jsonData", jsonData);
     return jsonData;
 }
 
+function getSpaceNameUrl(name) {
+    let url = document.location.origin
+        + "/"
+        + document.location.pathname.split("/")[1]
+        + "/chat/"
+        + name;
+    console.log("spacenameurl", url);
+    return url;
+}
+
+function getChatListUrl() {
+    let url = document.location.origin
+        + "/"
+        + document.location.pathname.split("/")[1]
+        + "/chats";
+    return url;
+}
+
 async function getChats() {
-    let response = await fetch(document.location.href + "chats");
+    let response = await fetch(getChatListUrl());
     let myChats = await response.json();
     chats = myChats;
     let myChatNames = Object.keys(myChats);
     let chatsIndex = document.querySelector("section.index");
     let length = myChatNames.length;
     myChatNames.forEach(async function (chat, i) {
+        console.log("chat", i, chat);
         let spaceName = myChats[chat].spaceName;
         chats[chat].loaded = false;
-        console.log(spaceName, "tabindex", i);
-        let json = await getChat(spaceName);
+        let spaceNameUrl = getSpaceNameUrl(spaceName);
+        console.log(spaceName, "url", spaceNameUrl, "tabindex", i);
+        let json = await getChat(spaceNameUrl);
         let members = json.members;
         let membersNotMe = members.filter(member => member != me);
-        let photos = membersNotMe.map(getPhoto)
+        let photos = await Promise.all(membersNotMe.map(getUserPhoto))
         console.log("members", photos);
         let section = document.createElement("a");
-        section.setAttribute("href", spaceName);
+        section.setAttribute("href", getSpaceNameUrl(spaceName));
         section.setAttribute("data-chatname", chat);
         section.setAttribute("tabindex", i + 1);
         section.textContent = chat;
@@ -150,16 +182,28 @@ async function getChats() {
             evt.preventDefault();
             evt.stopPropagation();
             let chatName = evt.currentTarget.getAttribute("data-chatname");
-            let spaceName = evt.currentTarget.getAttribute("href");
-            getChat(spaceName).then(displayChat);
+            let spaceUrl = evt.currentTarget.getAttribute("href");
+            getChat(spaceUrl).then(displayChat);
             return false;
         });
         chatsIndex.appendChild(element);
     });
 }
 
+function getAssetsUrl(asset) {
+    let url = document.location.origin
+        + "/"
+        + document.location.pathname.split("/")[1]
+        + "/"
+        + asset;
+    console.log("asset", url);
+    return url;
+}
+
+
 window.addEventListener("load", evt => {
-    let commsWorker = new SharedWorker("comms-worker.js");
+    let workerUrl = getAssetsUrl("comms-worker.js");
+    let commsWorker = new SharedWorker(workerUrl);
     commsWorker.port.addEventListener("message", msgEvt => {
         let data = msgEvt.data;
         let object = JSON.parse(data);
@@ -178,6 +222,8 @@ window.addEventListener("load", evt => {
     window.onpopstate = function (evt) {
         console.log("popstate", evt);
     };
+
+    getUserPhoto("nicferrier@localhost");
 
     let msgInput = document.querySelector("textarea[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {

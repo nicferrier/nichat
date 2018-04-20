@@ -24,7 +24,9 @@ function getRemoteAddr(request) {
 }
 
 function getChat (name, outFunc) {
-    fs.readFile("example-chats/" + name + ".json", (err, data) => {
+    let filename = "example-chats/" + name + ".json";
+    console.log("getChat file", filename);
+    fs.readFile(filename, (err, data) => {
         if (err) throw err;
         let obj = JSON.parse(data);
         outFunc(obj);
@@ -46,10 +48,34 @@ exports.boot = function (port, options) {
         response.redirect("/nichat");
     });
 
+
+    const users = {
+        "nicferrier@localhost": {
+            "photo": "/nichat/photos/nic.jpg"
+        },
+        "rajesh.shah@localhost": {
+            "photo": "/nichat/photos/raj.jpg"
+        },
+        "dan.flower@localhost": {
+            "photo": "/nichat/photos/dan.jpg"
+        },
+        "audrey@localhost": {
+            "photo": "/nichat/photos/audrey.jpg"
+        }
+    };
+
+    app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
+        let { user } = req.params;
+        console.log("got a user request", user);
+        let data = users[user];
+        response.json(data);
+    });
+
     app.get("/nichat/people/", function (req, response) {
-        console.log("request", request);
+        console.log("people request", request);
         response.sendStatus(204);
     });
+    
 
     // What chats have you got?
     app.get("/nichat/chats/", function (req, response) {
@@ -78,10 +104,18 @@ exports.boot = function (port, options) {
 
     app.get("/nichat/chat/:collection([A-Za-z0-9-]+)", function (req, response) {
         let { collection } = req.params;
-        response.status(200);
-        getChat(collection, function (data) {
-            response.json(data)
-        });
+        let { json } = req.query;
+        if (json == "1") {
+            response.status(200);
+            getChat(collection, function (data) {
+                response.json(data)
+            });
+        }
+        else {
+            let path = process.cwd() + "/www/index.html";
+            console.log("path", path);
+            response.sendFile(path);
+        }
     });
 
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+)",

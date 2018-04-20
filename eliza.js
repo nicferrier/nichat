@@ -18,7 +18,7 @@ exports.start = function () {
         let packet = JSON.parse(ev.data);
         console.log("eliza packet", packet);
         let { from, text, to } = packet;
-        if (to == "http://localhost:8081/nichat/chat/audreyandnic"
+        if (to.startsWith("http://localhost:8081/nichat/chat/audreyandnic")
             && from != "audrey@localhost") {
             let waitMs = Math.floor(Math.random() * Math.floor(4000));
             setTimeout(function () {
@@ -28,7 +28,7 @@ exports.start = function () {
                 form.append("from", "audrey@localhost",);
                 form.append("to", to);
                 form.append("text", elizaSays);
-                let url = "http://localhost:8081/nichat/chat/audreyandnic";
+                let url = "http://localhost:8081/nichat/chat/audreyandnic?json=1";
                 form.submit(url, (err, res) => {
                     console.log("response to eliza post", res.statusCode);
                 });

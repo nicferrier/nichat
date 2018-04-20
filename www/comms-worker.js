@@ -47,6 +47,7 @@ onconnect = function (connectEvt) {
         try {
             let [data] = msgEvt.data;
             let {type} = data;
+            console.log("message send", data);
             if (type == "to") {
                 let {message, space, from} = data;
                 // can we tell what client this came from so we can go back to them?
@@ -69,3 +70,4 @@ onconnect = function (connectEvt) {
     port.start();
 }
 
+// comms-worker.js ends here
