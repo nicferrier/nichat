@@ -1,6 +1,33 @@
 {
-    "name": "Audrey",
-    "members": ["audrey@localhost", "nicferrier@localhost"],
-    "messages":
-    []
+  "name": "Audrey",
+  "members": [
+    "audrey@localhost",
+    "nicferrier@localhost"
+  ],
+  "messages": [
+    {
+      "datetime": 1524252417144,
+      "from": "nicferrier@localhost",
+      "to": "http://localhost:8081/nichat/chat/audreyandnic",
+      "text": "I am wondering why I'm unhappy"
+    },
+    {
+      "datetime": 1524252418427,
+      "from": "audrey@localhost",
+      "to": "http://localhost:8081/nichat/chat/audreyandnic",
+      "text": "I'm sure it's not pleasant to be unhappy."
+    },
+    {
+      "datetime": 1524252424733,
+      "from": "nicferrier@localhost",
+      "to": "http://localhost:8081/nichat/chat/audreyandnic",
+      "text": "it really isn't"
+    },
+    {
+      "datetime": 1524252425183,
+      "from": "audrey@localhost",
+      "to": "http://localhost:8081/nichat/chat/audreyandnic",
+      "text": "That is interesting. Please continue."
+    }
+  ]
 }

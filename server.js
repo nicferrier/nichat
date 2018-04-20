@@ -8,7 +8,9 @@ const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
 const http = require("http");
+
 const eliza = require("./eliza");
+const chatstore = require("./chatstore.js");
 
 const mpParser = multer();
 const app = express();
@@ -124,7 +126,10 @@ exports.boot = function (port, options) {
                  console.log("collection received message post");
                  let data = req.body;
                  let { from, to, text } = data;
-                 console.log("data", from, to, text);
+                 let urlArray = req.url.split("/");
+                 let chatName = urlArray[urlArray.length - 1];
+                 console.log("chat post - name", chatName, "data", data);
+                 chatstore.saveChat(chatName, from, to, text, new Date());
                  Object.keys(connections).forEach(connectionKey => {
                      let connection = connections[connectionKey];
                      data["type"] = "from";

@@ -141,7 +141,7 @@ function getSpaceNameUrl(name) {
         + document.location.pathname.split("/")[1]
         + "/chat/"
         + name;
-    console.log("spacenameurl", url);
+    console.log("getSpaceNameUrl", url);
     return url;
 }
 
@@ -163,6 +163,7 @@ async function getChats() {
     let myChats = await response.json();
     chats = myChats;
     let myChatNames = Object.keys(myChats);
+    console.log("getChats myChatNames", myChatNames);
     let chatsIndex = document.querySelector("section.index");
     let length = myChatNames.length;
     myChatNames.forEach(async function (chat, i) {
