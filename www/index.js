@@ -125,11 +125,13 @@ function displayChat(json) {
 }
 
 async function getChat(spaceNameUrl) {
-    console.log("getChat", spaceNameUrl);
-    let response = await fetch(spaceNameUrl + "?json=1");
+    let chatJsonUrl = spaceNameUrl + "?json=1";
+    console.log("getChat", chatJsonUrl);
+    let response = await fetch(chatJsonUrl);
+    console.log("getChat response", response);
     let jsonData = await response.json();
     jsonData["url"] = spaceNameUrl;
-    console.log("jsonData", jsonData);
+    console.log("getChat jsonData", jsonData);
     return jsonData;
 }
 
@@ -151,6 +153,11 @@ function getChatListUrl() {
     return url;
 }
 
+async function getAndDisplayChat(url) {
+    let chatJson = await getChat(url);
+    displayChat(chatJson);
+}
+
 async function getChats() {
     let response = await fetch(getChatListUrl());
     let myChats = await response.json();
@@ -159,16 +166,16 @@ async function getChats() {
     let chatsIndex = document.querySelector("section.index");
     let length = myChatNames.length;
     myChatNames.forEach(async function (chat, i) {
-        console.log("chat", i, chat);
+        // console.log("chat", i, chat);
         let spaceName = myChats[chat].spaceName;
         chats[chat].loaded = false;
         let spaceNameUrl = getSpaceNameUrl(spaceName);
-        console.log(spaceName, "url", spaceNameUrl, "tabindex", i);
+        console.log("getChats getChat", spaceName, "url", spaceNameUrl, "tabindex", i);
         let json = await getChat(spaceNameUrl);
         let members = json.members;
         let membersNotMe = members.filter(member => member != me);
         let photos = await Promise.all(membersNotMe.map(getUserPhoto))
-        console.log("members", photos);
+        // console.log("members", photos);
         let section = document.createElement("a");
         section.setAttribute("href", getSpaceNameUrl(spaceName));
         section.setAttribute("data-chatname", chat);
@@ -183,11 +190,13 @@ async function getChats() {
             evt.stopPropagation();
             let chatName = evt.currentTarget.getAttribute("data-chatname");
             let spaceUrl = evt.currentTarget.getAttribute("href");
-            getChat(spaceUrl).then(displayChat);
+            // getChat(spaceUrl).then(displayChat);
+            getAndDisplayChat(spaceUrl);
             return false;
         });
         chatsIndex.appendChild(element);
     });
+    return myChats;
 }
 
 function getAssetsUrl(asset) {
@@ -200,6 +209,43 @@ function getAssetsUrl(asset) {
     return url;
 }
 
+function getChatNameOrEmpty() {
+    let url = document.location.pathname.split("/");
+    let [ _, chat, resource, name ] = url;
+    if (resource == "chat") {
+        return name;
+    }
+    return [];
+}
+
+async function init (commsWorker) {
+    let chats = await getChats();
+    
+    window.onpopstate = function (evt) {
+        console.log("popstate", evt);
+    };
+
+    let msgInput = document.querySelector("textarea[name=chat]");
+    msgInput.addEventListener("keypress", keyEvt => {
+        if (keyEvt.code == "Enter") {
+            let now = new Date();
+            let text = msgInput.value;
+            let spaceUrl = document.querySelector("body article")
+                .getAttribute("data-url");
+            queueMessage(now, text, spaceUrl, me, commsWorker.port);
+            msgInput.value = "";
+            keyEvt.preventDefault();
+        }
+    });
+
+    let chatNameOrEmpty = getChatNameOrEmpty();
+    console.log("chatNameOrEmpty", chatNameOrEmpty);
+    if (chatNameOrEmpty != []) {
+        let chatUrl = document.location.href;
+        console.log("chatNameOrEmpty chatUrl", chatUrl);
+        getAndDisplayChat(chatUrl);
+    }
+}
 
 window.addEventListener("load", evt => {
     let workerUrl = getAssetsUrl("comms-worker.js");
@@ -217,26 +263,7 @@ window.addEventListener("load", evt => {
     });
     commsWorker.port.start();
 
-    getChats();
-
-    window.onpopstate = function (evt) {
-        console.log("popstate", evt);
-    };
-
-    getUserPhoto("nicferrier@localhost");
-
-    let msgInput = document.querySelector("textarea[name=chat]");
-    msgInput.addEventListener("keypress", keyEvt => {
-        if (keyEvt.code == "Enter") {
-            let now = new Date();
-            let text = msgInput.value;
-            let spaceUrl = document.querySelector("body article")
-                .getAttribute("data-url");
-            queueMessage(now, text, spaceUrl, me, commsWorker.port);
-            msgInput.value = "";
-            keyEvt.preventDefault();
-        }
-    });
+    init(commsWorker);
 });
 
 // index.js ends here
