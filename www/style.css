@@ -101,7 +101,6 @@ body article {
     margin-right: 5px;
 }
 
-
 .me {
     width: 60%;
     margin-left: 40%;
@@ -130,7 +129,8 @@ body article {
 }
 
 .other div {
-    width: 80%;
+    width: 70%;
+    display: inline-block;
 }
 
 .other div span {
@@ -140,14 +140,8 @@ body article {
     background-color: #FCFCFC;
 }
 
-
 .other {
-    align: left;
     text-align: left;
-}
-
-.other img {
-    float: left;
 }
 
 
