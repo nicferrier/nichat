@@ -168,17 +168,27 @@ body article {
 }
 
 div.emoticons {
-    transition: height 0.5s ease-out;
+    transition: all 0.8s;
+    transition-property: height, padding;
     height: 26px;
     background-color: White;
     overflow: auto;
+    padding: 2px;
+}
+
+div.controls {
+    transition: all 0.8s;
+    transition-property: height, padding;
+    height: 26px;
+    background-color: White;
     margin: 0px;
-    margin-right: 0px;
     padding: 2px;
 }
 
 .hidden {
     height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
 }
 
 .entry-control {

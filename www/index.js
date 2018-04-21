@@ -252,9 +252,22 @@ function getChatNameOrEmpty() {
     return [];
 }
 
+var speechOn = false;
+const  incommingMessage = function (text) {
+    if (speechOn) {
+        speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    }
+};
+
+function initSpeech () {
+    let voices = speechSynthesis.getVoices();
+    let englishVoices = voices.filter(voice => voice.lang == "en-GB");
+    new SpeechSynthesisUtterance().voice = englishVoices[1];
+}
+
 async function init (commsWorker) {
     let chats = await getChats();
-    
+
     window.onpopstate = function (evt) {
         console.log("popstate", evt);
     };
@@ -264,6 +277,21 @@ async function init (commsWorker) {
             let emoticons = document.querySelector(".emoticons");
             emoticons.classList.toggle("hidden");
             emoticons.focus();
+        });
+
+    document.querySelector("button[name=settings]")
+        .addEventListener("click", evt => {
+            let settings = document.querySelector(".controls");
+            settings.classList.toggle("hidden");
+            settings.focus();
+        });
+
+    document.querySelector("button[name=speech]")
+        .addEventListener("click", evt => {
+            speechOn = !speechOn;
+            let settings = document.querySelector(".controls");
+            settings.classList.toggle("hidden");
+            settings.focus();
         });
 
     let msgInput = document.querySelector("textarea[name=chat]");
@@ -302,6 +330,7 @@ window.addEventListener("load", evt => {
         let { from, to, text } = object;
         if (from != me && to == currentChatUrl) {
             displayMessage(new Date(), text, to, from);
+            incommingMessage(text);
         }
         console.log("worker message", msgEvt, from, to, text);
     });
