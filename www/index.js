@@ -86,7 +86,7 @@ async function displayMessage(msgTime, text, toSpace, from) {
     chat.parentNode.scrollTop = chat.parentNode.scrollHeight;
 }
 
-function queueMessage(msgTime, text, toSpace, from, workerPort) {
+async function queueMessage(msgTime, text, toSpace, from, workerPort) {
     let msg = {
         type: "to",
         message: text,
@@ -95,7 +95,7 @@ function queueMessage(msgTime, text, toSpace, from, workerPort) {
     };
     console.log("queueMessage", msg);
     workerPort.postMessage([msg]);
-    displayMessage(msgTime, text, toSpace, from, workerPort);
+    await displayMessage(msgTime, text, toSpace, from, workerPort);
 }
 
 function displayChat(json) {
@@ -116,10 +116,10 @@ function displayChat(json) {
     let textArea = document.querySelector(".entry div textarea");
     textArea.removeAttribute("disabled");
     textArea.focus();
-    messages.forEach(message => {
+    messages.forEach(async function (message) {
         let { datetime, text, from, to } = message;
         console.log("message", datetime, text);
-        displayMessage(new Date(datetime), text, "unknown", from);
+        await displayMessage(new Date(datetime), text, "unknown", from);
     });
     return json;
 }
