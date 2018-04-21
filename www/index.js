@@ -2,14 +2,6 @@ const me = "nicferrier@localhost";
 var chats = {};
 var state = {};
 
-window.consoleChats = function () {
-    console.log("chats", chats);
-}
-
-window.consoleState = function () {
-    console.log("state", state);
-}
-
 function chatTimeFormat (time) {
     return time.toLocaleString();
 }
@@ -38,11 +30,11 @@ async function getUserPhoto(username)
 
 function displayChatTime (chat, msgTime) {
     let spacer = document.createElement("div");
-    spacer.setAttribute("date-datetime", msgTime.valueOf());
-    spacer.setAttribute("date-datetime-string", msgTime.toString());
+    spacer.setAttribute("data-datetime", msgTime.valueOf());
+    spacer.setAttribute("data-datetime-string", msgTime.toString());
     spacer.classList.add("chat-time");
     spacer.textContent = chatTimeFormat(msgTime);
-    chat.appendChild(document.importNode(spacer, true));
+    chat.appendChild(spacer);
 }
 
 function chatDiv(container) {
@@ -53,19 +45,8 @@ function chatDiv(container) {
 }
 
 async function displayMessage(msgTime, text, toSpace, from) {
+    console.log("displayMessage text", text);
     let chat = document.querySelector("section.chat div");
-    if (chat.children.length == 0) {
-        displayChatTime(chat, msgTime);
-    }
-    else if (chat.children.length > 0) {
-        let lastChild = chat.children[chat.children.length - 1];
-        let lastDatetimeString = lastChild.getAttribute("data-datetime");
-        let lastDatetimeLong = parseInt(lastDatetimeString);
-        let hoursSince = (msgTime.valueOf() - lastDatetimeLong) / 1000 / 60 / 60;
-        if (hoursSince > 1) {
-            displayChatTime(chat, msgTime);
-        }
-    }
     
     let div = document.createElement("div");
     div.setAttribute("data-datetime", msgTime.valueOf());
@@ -75,6 +56,23 @@ async function displayMessage(msgTime, text, toSpace, from) {
     let photoUrl = await getUserPhoto(from);
     img.src = photoUrl;
     let span = document.createElement("span");
+
+    if (chat.children.length == 0) {
+        displayChatTime(chat, msgTime);
+    }
+    else if (chat.children.length > 0) {
+        console.log("displayMessage length", chat.children.length);
+        let lastChild = chat.children[chat.children.length - 1];
+        let lastDatetimeString = lastChild.getAttribute("data-datetime");
+        console.log("displayMessage lastDatetimeString", lastDatetimeString, text);
+        let lastDatetimeLong = parseInt(lastDatetimeString);
+        let hoursSince = (msgTime.valueOf() - lastDatetimeLong) / 1000 / 60 / 60;
+        console.log("displayMessage hoursSince", hoursSince);
+        if (hoursSince > 1) {
+            displayChatTime(chat, msgTime);
+        }
+    }
+    
     span.textContent = text;
     if (from == me) {
         div.appendChild(span);
@@ -84,7 +82,7 @@ async function displayMessage(msgTime, text, toSpace, from) {
         div.appendChild(img);
         div.appendChild(span);
     }
-    chat.appendChild(document.importNode(div, true));
+    chat.appendChild(div);
     chat.parentNode.scrollTop = chat.parentNode.scrollHeight;
 }
 
