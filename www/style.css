@@ -83,7 +83,6 @@ body article {
 
 .me, .other {
     clear: both;
-    display: inline-block;
     margin-bottom: 12px;
     padding-bottom: 2px;
 }
@@ -94,7 +93,7 @@ body article {
     display: inline-block;
 }
 
-.me span, .other span {
+.me div, .other div {
     display: block;
     vertical-align: top;
     padding: 3px;
@@ -109,25 +108,38 @@ body article {
     text-align: right;
 }
 
-.me span {
-    background-color: #5CCDE5;
+.me div {
     margin-right: 55px;
+}
+
+.me div span {
+    display: inline-block;
+    padding: 2px;
+    background-color: #5CCDE5;
 }
 
 .me img {
     display: block;
-    margin-left: 10px;
+    margin-left: 6px;
     vertical-align: top;
     float: right;
 }
 
 .other {
-    width: 60%;
+    width: 90%;
 }
 
-.other span {
+.other div {
+    width: 80%;
+}
+
+.other div span {
+    margin-left: 6px;
+    display: inline-block;
+    padding: 2px;
     background-color: #FCFCFC;
 }
+
 
 .other {
     align: left;

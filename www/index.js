@@ -60,7 +60,9 @@ async function displayMessage(msgTime, text, toSpace, from) {
     let img = document.createElement("img");
     let photoUrl = await getUserPhoto(from);
     img.src = photoUrl;
+    let chatDiv = document.createElement("div");
     let span = document.createElement("span");
+    chatDiv.appendChild(span);
 
     if (chat.children.length == 0) {
         displayChatTime(chat, msgTime);
@@ -81,11 +83,11 @@ async function displayMessage(msgTime, text, toSpace, from) {
     span.textContent = text;
     if (from == me) {
         div.appendChild(img);
-        div.appendChild(span);
+        div.appendChild(chatDiv);
     }
     else {
         div.appendChild(img);
-        div.appendChild(span);
+        div.appendChild(chatDiv);
     }
     chat.appendChild(div);
     chat.parentNode.scrollTop = chat.parentNode.scrollHeight;
