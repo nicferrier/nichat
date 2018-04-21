@@ -29,6 +29,12 @@
       "from": "nicferrier@localhost",
       "to": "rajesh.shah@localhost",
       "text": "why?"
+    },
+    {
+      "datetime": 1524252932360,
+      "from": "nicferrier@localhost",
+      "to": "http://localhost:8081/nichat/chat/rajandnic",
+      "text": "ok?"
     }
   ]
 }

@@ -25,16 +25,6 @@ function getRemoteAddr(request) {
     return remoteAddr;
 }
 
-function getChat (name, outFunc) {
-    let filename = "example-chats/" + name + ".json";
-    console.log("getChat file", filename);
-    fs.readFile(filename, (err, data) => {
-        if (err) throw err;
-        let obj = JSON.parse(data);
-        outFunc(obj);
-    });
-}
-
 exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : "www";
@@ -104,21 +94,21 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.get("/nichat/chat/:collection([A-Za-z0-9-]+)", function (req, response) {
-        let { collection } = req.params;
-        let { json } = req.query;
-        if (json == "1") {
-            response.status(200);
-            getChat(collection, function (data) {
-                response.json(data)
+    app.get("/nichat/chat/:collection([A-Za-z0-9-]+)",
+            async function (req, response) {
+                let { collection } = req.params;
+                let { json } = req.query;
+                if (json == "1") {
+                    response.status(200);
+                    let chatJson = await chatstore.getChat(collection);
+                    response.json(chatJson)
+                }
+                else {
+                    let path = process.cwd() + "/www/index.html";
+                    console.log("path", path);
+                    response.sendFile(path);
+                }
             });
-        }
-        else {
-            let path = process.cwd() + "/www/index.html";
-            console.log("path", path);
-            response.sendFile(path);
-        }
-    });
 
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+)",
              mpParser.fields([]),
