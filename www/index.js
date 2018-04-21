@@ -2,7 +2,12 @@ const me = "nicferrier@localhost";
 var chats = {};
 var state = {};
 
+Array.prototype.forEachAsync = async function (fn) {
+    for (let t of this) { await fn(t) }
+}
+
 function chatTimeFormat (time) {
+    let now = new Date();
     return time.toLocaleString();
 }
 
@@ -75,8 +80,8 @@ async function displayMessage(msgTime, text, toSpace, from) {
     
     span.textContent = text;
     if (from == me) {
-        div.appendChild(span);
         div.appendChild(img);
+        div.appendChild(span);
     }
     else {
         div.appendChild(img);
@@ -116,7 +121,7 @@ function displayChat(json) {
     let textArea = document.querySelector(".entry div textarea");
     textArea.removeAttribute("disabled");
     textArea.focus();
-    messages.forEach(async function (message) {
+    messages.forEachAsync(async function (message) {
         let { datetime, text, from, to } = message;
         console.log("message", datetime, text);
         await displayMessage(new Date(datetime), text, "unknown", from);
