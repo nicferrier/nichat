@@ -113,7 +113,7 @@ body article {
 
 .me div span {
     display: inline-block;
-    padding: 2px;
+    padding: 6px;
     background-color: #5CCDE5;
 }
 
@@ -136,7 +136,7 @@ body article {
 .other div span {
     margin-left: 6px;
     display: inline-block;
-    padding: 2px;
+    padding: 6px;
     background-color: #FCFCFC;
 }
 

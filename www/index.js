@@ -50,7 +50,7 @@ function chatDiv(container) {
 }
 
 async function displayMessage(msgTime, text, toSpace, from) {
-    console.log("displayMessage text", text);
+    // console.log("displayMessage text", text);
     let chat = document.querySelector("section.chat div");
     
     let div = document.createElement("div");
@@ -68,13 +68,13 @@ async function displayMessage(msgTime, text, toSpace, from) {
         displayChatTime(chat, msgTime);
     }
     else if (chat.children.length > 0) {
-        console.log("displayMessage length", chat.children.length);
+        // console.log("displayMessage length", chat.children.length);
         let lastChild = chat.children[chat.children.length - 1];
         let lastDatetimeString = lastChild.getAttribute("data-datetime");
-        console.log("displayMessage lastDatetimeString", lastDatetimeString, text);
+        // console.log("displayMessage lastDatetimeString", lastDatetimeString, text);
         let lastDatetimeLong = parseInt(lastDatetimeString);
         let hoursSince = (msgTime.valueOf() - lastDatetimeLong) / 1000 / 60 / 60;
-        console.log("displayMessage hoursSince", hoursSince);
+        // console.log("displayMessage hoursSince", hoursSince);
         if (hoursSince > 1) {
             displayChatTime(chat, msgTime);
         }
@@ -125,7 +125,7 @@ function displayChat(json) {
     textArea.focus();
     messages.forEachAsync(async function (message) {
         let { datetime, text, from, to } = message;
-        console.log("message", datetime, text);
+        // console.log("message", datetime, text);
         await displayMessage(new Date(datetime), text, "unknown", from);
     });
     return json;
