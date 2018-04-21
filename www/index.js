@@ -278,6 +278,9 @@ async function init (commsWorker) {
             keyEvt.preventDefault();
         }
     });
+    msgInput.addEventListener("paste", evt => {
+        console.log("paste event", evt);
+    });
 
     let chatNameOrEmpty = getChatNameOrEmpty();
     console.log("chatNameOrEmpty", chatNameOrEmpty);
