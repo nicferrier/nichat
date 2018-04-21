@@ -82,41 +82,69 @@ body article {
 }
 
 .me, .other {
-    width: 100%;
+    clear: both;
+    display: inline-block;
     margin-bottom: 12px;
     padding-bottom: 2px;
-    border-bottom: solid 1px #E7E7E7;
 }
 
 .me img, .other img {
     height: 50px;
     width: 50px;
+    display: inline-block;
 }
 
 .me span, .other span {
+    display: block;
     vertical-align: top;
-    background-color: #F9F9F9;
+    padding: 3px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
+
 .me {
+    width: 60%;
+    margin-left: 40%;
     text-align: right;
 }
 
+.me span {
+    background-color: #5CCDE5;
+    margin-right: 55px;
+}
+
 .me img {
+    display: block;
     margin-left: 10px;
+    vertical-align: top;
+    float: right;
 }
 
 .other {
+    width: 60%;
+}
+
+.other span {
+    background-color: #FCFCFC;
+}
+
+.other {
+    align: left;
     text-align: left;
 }
 
 .other img {
-    margin-right: 10px;
+    float: left;
 }
+
+
 
 .chat-time {
     width: 100%;
     text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 
