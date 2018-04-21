@@ -6,10 +6,34 @@ Array.prototype.forEachAsync = async function (fn) {
     for (let t of this) { await fn(t) }
 }
 
+function timePad(number) {
+    return ("" + number).padStart(2, "0");
+}
+
 function chatTimeFormat (time) {
     let now = new Date();
+    let hours = (now.valueOf() - time.valueOf()) / 1000 / 60 / 60;
+    let hour = time.getHours();
+    let minutes = time.getMinutes();
+    if (hours < 6) {
+        return `${timePad(hour)}:${timePad(minutes)}`;
+    }
+    else if (hours < 72) {
+        let days = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+        ];
+        let day = time.getDay();
+        return `${days[day]}, ${timePad(hour)}:${timePad(minutes)}`;
+    }
     return time.toLocaleString();
 }
+
 
 var photosList = {}
 
@@ -38,7 +62,9 @@ function displayChatTime (chat, msgTime) {
     spacer.setAttribute("data-datetime", msgTime.valueOf());
     spacer.setAttribute("data-datetime-string", msgTime.toString());
     spacer.classList.add("chat-time");
-    spacer.textContent = chatTimeFormat(msgTime);
+    let span = document.createElement("span");
+    span.textContent = chatTimeFormat(msgTime);
+    spacer.appendChild(span);
     chat.appendChild(spacer);
 }
 
@@ -232,6 +258,13 @@ async function init (commsWorker) {
     window.onpopstate = function (evt) {
         console.log("popstate", evt);
     };
+
+    document.querySelector("button[name=faces]")
+        .addEventListener("click", evt => {
+            let emoticons = document.querySelector(".emoticons");
+            emoticons.classList.toggle("hidden");
+            emoticons.focus();
+        });
 
     let msgInput = document.querySelector("textarea[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {

@@ -145,7 +145,6 @@ body article {
 }
 
 
-
 .chat-time {
     width: 100%;
     text-align: center;
@@ -153,21 +152,47 @@ body article {
     margin-bottom: 20px;
 }
 
+.chat-time span {
+    background-color: #E0E0E0;
+    padding: 6px;
+    font-size: small;
+}
+
 
 .entry {
-    height: 150px;
+    height: 200px;
     flex: initial;
     flex-direction: column;
     display: flex;
     background-color: White;
 }
 
+div.emoticons {
+    transition: height 0.5s ease-out;
+    height: 26px;
+    background-color: White;
+    overflow: auto;
+    margin: 0px;
+    margin-right: 0px;
+    padding: 2px;
+}
+
+.hidden {
+    height: 0px !important;
+}
+
 .entry-control {
-    height: 20px;
+    height: 26px;
     flex: initial;
 }
 
-.entry div {
+.entry-control button {
+    height: 24px;
+    margin-top: 1px;
+    vertical-align: bottom;
+}
+
+.entry div.entrytext {
     margin: 10px;
     flex: 1;
 }
@@ -182,3 +207,4 @@ body article {
 .entry div textarea:focus {
     outline:none !important;
 }
+
