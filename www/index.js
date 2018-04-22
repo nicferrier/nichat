@@ -146,9 +146,12 @@ function displayChat(json) {
     }
     div = document.importNode(document.createElement("div"));
     document.querySelector(".chat").appendChild(div);
-    let textArea = document.querySelector(".entry div textarea");
-    textArea.removeAttribute("disabled");
-    textArea.focus();
+
+    let contentEditable = document.querySelector(".entry div div");
+    contentEditable.removeAttribute("disabled");
+    contentEditable.setAttribute("contentEditable", "true");
+    contentEditable.focus();
+
     messages.forEachAsync(async function (message) {
         let { datetime, text, from, to } = message;
         // console.log("message", datetime, text);
@@ -294,11 +297,13 @@ async function init (commsWorker) {
             settings.focus();
         });
 
-    let msgInput = document.querySelector("textarea[name=chat]");
+    let msgInput = document.querySelector("div[name=chat]");
     msgInput.addEventListener("keypress", keyEvt => {
         if (keyEvt.code == "Enter") {
             let now = new Date();
-            let text = msgInput.value;
+            let text = msgInput.textContent;
+            msgInput.textContent = "";
+            console.log("text to send", text);
             let spaceUrl = document.querySelector("body article")
                 .getAttribute("data-url");
             queueMessage(now, text, spaceUrl, me, commsWorker.port);

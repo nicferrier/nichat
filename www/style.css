@@ -183,6 +183,7 @@ div.controls {
     background-color: White;
     margin: 0px;
     padding: 2px;
+    overflow: hidden;
 }
 
 .hidden {
@@ -207,14 +208,14 @@ div.controls {
     flex: 1;
 }
 
-.entry div textarea {
+.entry div div {
     width: 100%;
     background-color: White;
     border: none;
     outline:none !important;
 }
 
-.entry div textarea:focus {
+.entry div div:focus {
     outline:none !important;
 }
 
