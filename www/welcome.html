@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="/nichat/welcome.css" type="text/css"/>
+    <script src="/nichat/welcome.js"></script>
+  </head>
+  <body>
+    <div>
+      <h1>welcome, <i>ni</i> chat</h1>
+    </div>
+
+    <form method="POST">
+      <div class="hidden">click to snap</div>
+      <video id="video"
+             tabindex="0"
+             alt="click to snap"
+             autoplay="1"></video>
+      <canvas class="hidden"></canvas>
+      <input type="email"
+             tabindex="1"
+             required="1"
+             placeholder="what's your email?"/>
+      <input type="password"
+             tabindex="2"
+             required="yes"
+             minlength="6"
+             placeholder="what's your password?"/>
+    </form>
+  </body>
+</html>

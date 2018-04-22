@@ -56,6 +56,11 @@ exports.boot = function (port, options) {
         }
     };
 
+    app.get("/nichat/welcome", function (req, response) {
+        let path = process.cwd() + "/www/welcome.html";
+        response.sendFile(path);
+    });
+
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
         let { user } = req.params;
         console.log("got a user request", user);
