@@ -30,6 +30,15 @@ form * {
     margin: 10px;
 }
 
+form div {
+    transition: all 0.8s;
+    transition-property: height, padding;
+    height: 28px;
+    background-color: white;
+    position: fixed;
+    top: 10px;
+}
+
 @media (min-width:500px){
     form canvas, form video {
         width: 300px;

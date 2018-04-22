@@ -3,10 +3,16 @@ window.addEventListener("load", evt => {
     let canvas = document.querySelector("canvas");
     
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-            video.src = window.URL.createObjectURL(stream);
-            video.play();
-        });
+        navigator.mediaDevices
+            .getUserMedia({video: {
+                /// this is for screen sharing but doesn't work.
+                /// just use true instead of the object for normal camera
+                mediaSource: "screen" 
+            }})
+            .then(stream => {
+                video.src = window.URL.createObjectURL(stream);
+                video.play();
+            });
     }
 
     canvas.addEventListener("click", function () {
@@ -15,13 +21,16 @@ window.addEventListener("load", evt => {
     });
 
     video.onfocus = function (evt) {
-        console.log("focus!", evt);
+        document.querySelector("form div").classList.toggle("hidden");
+    };
+
+    video.onblur = function (evt) {
         document.querySelector("form div").classList.toggle("hidden");
     };
     
     // Trigger photo take
-    video.addEventListener("click", function() {
-        console.log("video", video.height);
+    video.addEventListener("click", function () {
+        // video.pause();
         video.classList.toggle("hidden");
         canvas.classList.toggle("hidden");
         canvas.height = 225;
