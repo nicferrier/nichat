@@ -9,6 +9,27 @@ function testEliza () {
     console.log(eliza.transform("I've been wondering if you'd be a good test"));
 }
 
+function joinMap(map) {
+    let result=[];
+    let vals = function (o) {
+        let foreach = Array.isArray(o)
+            ? function (l) { o.forEach(l); }
+            : (typeof(o) === "object")
+            ? function (l) { Object.values(o).forEach(l); }
+            : function (l) { [o].forEach(l); };
+        foreach(v => {
+            if (typeof(v) === "string") {
+                result.push(v);
+            }
+            else {
+                vals(v);
+            }
+        });
+    };
+    vals(map);
+    return result.join("");
+}
+
 exports.start = function () {
     console.log("setting up eliza");
     let eliza = new ElizaBot();
@@ -20,14 +41,15 @@ exports.start = function () {
         let { from, text, to } = packet;
         if (to.startsWith("http://localhost:8081/nichat/chat/audreyandnic")
             && from != "audrey@localhost") {
+            let plainText = joinMap(text);
             let waitMs = Math.floor(Math.random() * Math.floor(4000));
             setTimeout(function () {
-                let elizaSays = eliza.transform(text);
+                let elizaSays = eliza.transform(plainText);
                 console.log("eliza reply", elizaSays);
                 let form = new FormData();
                 form.append("from", "audrey@localhost",);
                 form.append("to", to);
-                form.append("text", elizaSays);
+                form.append("text", JSON.stringify([elizaSays]));
                 let url = "http://localhost:8081/nichat/chat/audreyandnic?json=1";
                 form.submit(url, (err, res) => {
                     console.log("response to eliza post", res.statusCode);

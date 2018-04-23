@@ -78,6 +78,7 @@ body article {
     padding-left: 15px;
     padding-right: 15px;
     height: 100%;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
@@ -219,3 +220,21 @@ div.controls {
     outline:none !important;
 }
 
+
+/* stuff to make tables display nicely */
+
+table {
+    border: solid 1px;
+    border-collapse: collapse;
+}
+
+table tr {
+    border: solid 1px;
+}
+
+table tr td {
+    border-left: solid 1px;
+}
+
+
+/* end */

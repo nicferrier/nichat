@@ -1,3 +1,5 @@
+import hton from "./hton.js";
+
 const me = "nicferrier@localhost";
 var chats = {};
 var state = {};
@@ -76,7 +78,7 @@ function chatDiv(container) {
 }
 
 async function displayMessage(msgTime, text, toSpace, from) {
-    // console.log("displayMessage text", text);
+    console.log("displayMessage text", text);
     let chat = document.querySelector("section.chat div");
     
     let div = document.createElement("div");
@@ -105,8 +107,9 @@ async function displayMessage(msgTime, text, toSpace, from) {
             displayChatTime(chat, msgTime);
         }
     }
-    
-    span.textContent = text;
+
+    hton.hton2Dom(text, span);
+    //span.textContent = text;
     if (from == me) {
         div.appendChild(img);
         div.appendChild(chatDiv);
@@ -128,7 +131,7 @@ async function queueMessage(msgTime, text, toSpace, from, workerPort) {
     };
     console.log("queueMessage", msg);
     workerPort.postMessage([msg]);
-    await displayMessage(msgTime, text, toSpace, from, workerPort);
+    await displayMessage(msgTime, JSON.parse(text), toSpace, from, workerPort);
 }
 
 function displayChat(json) {
@@ -167,7 +170,7 @@ async function getChat(spaceNameUrl) {
     console.log("getChat response", response);
     let jsonData = await response.json();
     jsonData["url"] = spaceNameUrl;
-    console.log("getChat jsonData", jsonData);
+    console.log("getChat jsonData", jsonData, jsonData.messages);
     return jsonData;
 }
 
@@ -202,7 +205,7 @@ async function getChats() {
     console.log("getChats myChatNames", myChatNames);
     let chatsIndex = document.querySelector("section.index");
     let length = myChatNames.length;
-    myChatNames.forEach(async function (chat, i) {
+    myChatNames.forEachAsync(async function (chat, i) {
         // console.log("chat", i, chat);
         let spaceName = myChats[chat].spaceName;
         chats[chat].loaded = false;
@@ -255,6 +258,40 @@ function getChatNameOrEmpty() {
     return [];
 }
 
+function pasteHandler (e) {
+    console.log("pasteHandler!", e);
+    let items = e.clipboardData.items;
+    Array.from(items).forEachAsync(async function (item, i) {
+	if (item.type.indexOf("image") >= 0) {
+	    let itemFile = item.getAsFile();
+	    let formData = new FormData();
+	    formData.append("image", itemFile);
+
+            let url = document.location.href + ";imageUpload";
+            console.log("image upload url", url);
+            let response = await fetch(url, {
+                method: "POST",
+                body: formData
+            });
+
+            /*
+	    var xhr = new XMLHttpRequest();
+	    xhr.onreadystatechange = function() {
+		if (this.readyState === this.DONE) {
+		    let url = this.responseURL;
+		    document.execCommand("insertImage", false, url);
+		}
+	        };
+            */
+            console.log("response", response, response.headers);
+	}
+	else {
+	    console.log("Ignoring non-image.");
+	}
+    });
+}
+
+
 var speechOn = false;
 const  incommingMessage = function (text) {
     if (speechOn) {
@@ -301,18 +338,19 @@ async function init (commsWorker) {
     msgInput.addEventListener("keypress", keyEvt => {
         if (keyEvt.code == "Enter") {
             let now = new Date();
-            let text = msgInput.textContent;
-            msgInput.textContent = "";
-            console.log("text to send", text);
+            let text = hton.htonStringify(msgInput);
+            console.log("msgInput text", text);
             let spaceUrl = document.querySelector("body article")
                 .getAttribute("data-url");
             queueMessage(now, text, spaceUrl, me, commsWorker.port);
-            msgInput.value = "";
+
+            msgInput.textContent = "";
             keyEvt.preventDefault();
         }
     });
     msgInput.addEventListener("paste", evt => {
         console.log("paste event", evt);
+        pasteHandler(evt);
     });
 
     let chatNameOrEmpty = getChatNameOrEmpty();
@@ -329,6 +367,7 @@ window.addEventListener("load", evt => {
     let commsWorker = new SharedWorker(workerUrl);
     commsWorker.port.addEventListener("message", msgEvt => {
         let data = msgEvt.data;
+        console.log("worker data", data);
         let object = JSON.parse(data);
         let currentChatUrl = document.querySelector("body article")
             .getAttribute("data-url");

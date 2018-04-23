@@ -1,6 +1,8 @@
 
 const fs = require('fs');
+const path = require('path');
 const { URL } = require('url');
+const crypto = require("crypto");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -12,7 +14,6 @@ const http = require("http");
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
-const mpParser = multer();
 const app = express();
 
 function getRemoteAddr(request) {
@@ -29,6 +30,18 @@ exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : "www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
+    let storage = multer.diskStorage({
+        destination: "images",
+        filename: function (req, file, callback) {
+            crypto.pseudoRandomBytes(16, function(err, raw) {
+                if (err) return callback(err);
+                let extension = path.extname(file.originalname);
+                let newFilename = raw.toString('hex') + extension;
+                callback(null, newFilename);
+            });
+        }
+    })
+    let mpParser = multer({storage: storage});
 
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
@@ -72,7 +85,7 @@ exports.boot = function (port, options) {
         console.log("people request", request);
         response.sendStatus(204);
     });
-    
+
 
     // What chats have you got?
     app.get("/nichat/chats/", function (req, response) {
@@ -115,16 +128,28 @@ exports.boot = function (port, options) {
                 }
             });
 
+    app.post("/nichat/chat/:collection([A-Za-z0-9-]+);imageUpload",
+             mpParser.single("image"),
+             function (req, response) {
+                 console.log("image uploader");
+                 let imageFile = req.file;
+                 console.log("image uploader got file", imageFile);
+                 response.set("Location", imageFile.path);
+                 response.sendStatus(201);
+             });
+
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+)",
              mpParser.fields([]),
              function (req, response) {
-                 console.log("collection received message post");
+                 console.log("collection got message post", req.body, req.url);
                  let data = req.body;
                  let { from, to, text } = data;
+                 let textJson = JSON.parse(text);
+                 data.text = textJson;
                  let urlArray = req.url.split("/");
                  let chatName = urlArray[urlArray.length - 1];
                  console.log("chat post - name", chatName, "data", data);
-                 chatstore.saveChat(chatName, from, to, text, new Date());
+                 chatstore.saveChat(chatName, from, to, textJson, new Date());
                  Object.keys(connections).forEach(connectionKey => {
                      let connection = connections[connectionKey];
                      data["type"] = "from";

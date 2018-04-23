@@ -107,12 +107,14 @@ exports.saveChat = async function (chat, from, to, text, date) {
         messages: []
     };
     let dateNum = date.valueOf();
-    json.messages.push({
+    let newMessage = {
         "datetime": dateNum,
         "from": from,
         "to": to,
         "text": text
-    });
+    };
+    console.log("chatstore newMessage", newMessage);
+    json.messages.push(newMessage);
     await fs.writeFileAsync(filename, JSON.stringify(json, null, 2));
 }
 
