@@ -259,6 +259,7 @@ table tr td {
 .fullview button {
     margin: 10px;
     position: absolute;
+    right: 0;
     top: 0;
 }
 
