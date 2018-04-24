@@ -205,15 +205,26 @@ div.controls {
 }
 
 .entry div.entrytext {
+    display: block;
+    height: 100%;
     margin: 10px;
     flex: 1;
+    box-sizing: border-box;
 }
 
-.entry div div {
+.entry div.entrytext div {
+    display: block;
+    box-sizing: border-box;
     width: 100%;
+    height: 50%;
     background-color: White;
     border: none;
     outline:none !important;
+}
+
+.entry div.entrytext div img {
+    max-height: 50px;
+    max-width: 50px;
 }
 
 .entry div div:focus {

@@ -28,7 +28,7 @@ function getRemoteAddr(request) {
 
 exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
-    let rootDir = opts.rootDir != undefined ? opts.rootDir : "www";
+    let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
     let storage = multer.diskStorage({
         destination: "images",
@@ -46,8 +46,10 @@ exports.boot = function (port, options) {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
 
+    let imageDir = __dirname + "/images";
+    app.use("/nichat/images", express.static(imageDir));
     app.use("/nichat", express.static(rootDir));
-
+    
     app.get("/", function (req, response) {
         console.log("redirecting to routed path /nichat");
         response.redirect("/nichat");
@@ -134,7 +136,7 @@ exports.boot = function (port, options) {
                  console.log("image uploader");
                  let imageFile = req.file;
                  console.log("image uploader got file", imageFile);
-                 response.set("Location", imageFile.path);
+                 response.set("Location", "/nichat/" + imageFile.path);
                  response.sendStatus(201);
              });
 

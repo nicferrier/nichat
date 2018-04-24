@@ -12,19 +12,23 @@ function testEliza () {
 function joinMap(map) {
     let result=[];
     let vals = function (o) {
-        let foreach = Array.isArray(o)
-            ? function (l) { o.forEach(l); }
-            : (typeof(o) === "object")
-            ? function (l) { Object.values(o).forEach(l); }
-            : function (l) { [o].forEach(l); };
-        foreach(v => {
-            if (typeof(v) === "string") {
-                result.push(v);
-            }
-            else {
-                vals(v);
-            }
-        });
+        try {
+            let foreach = Array.isArray(o)
+                ? function (l) { o.forEach(l); }
+                : (typeof(o) === "object")
+                ? function (l) { Object.values(o).forEach(l); }
+                : function (l) { [o].forEach(l); };
+            foreach(v => {
+                if (typeof(v) === "string") {
+                    result.push(v);
+                }
+                else {
+                    vals(v);
+                }
+            });
+        }    
+        catch(e) {
+        }
     };
     vals(map);
     return result.join("");

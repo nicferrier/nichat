@@ -274,16 +274,8 @@ function pasteHandler (e) {
                 body: formData
             });
 
-            /*
-	    var xhr = new XMLHttpRequest();
-	    xhr.onreadystatechange = function() {
-		if (this.readyState === this.DONE) {
-		    let url = this.responseURL;
-		    document.execCommand("insertImage", false, url);
-		}
-	        };
-            */
-            console.log("response", response, response.headers);
+            let location = response.headers.get("Location");
+            document.execCommand("insertImage", false, location);
 	}
 	else {
 	    console.log("Ignoring non-image.");
