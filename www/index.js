@@ -307,6 +307,7 @@ function clickToFullView(target) {
         newArticle.appendChild(targetContent);
         displayContainer.appendChild(newArticle);
         displayContainer.classList.remove("hidden");
+        document.querySelector(".fullview button").focus();
     }
     else {
         clickToFullView(target.parentElement);

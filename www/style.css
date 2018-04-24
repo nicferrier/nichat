@@ -82,19 +82,19 @@ body article {
     overflow-y: auto;
 }
 
-.me, .other {
+.chat .me, .chat .other {
     clear: both;
     margin-bottom: 12px;
     padding-bottom: 2px;
 }
 
-.me img, .other img {
+.chat .me img, .chat .other img {
     height: 50px;
     width: 50px;
     display: inline-block;
 }
 
-.me div, .other div {
+.chat .me div, .chat .other div {
     display: block;
     vertical-align: top;
     padding: 3px;
@@ -102,46 +102,46 @@ body article {
     margin-right: 5px;
 }
 
-.me {
+.chat .me {
     width: 60%;
     margin-left: 40%;
     text-align: right;
 }
 
-.me div {
+.chat .me div {
     margin-right: 55px;
 }
 
-.me div span {
+.chat .me div span {
     display: inline-block;
     padding: 6px;
     background-color: #5CCDE5;
 }
 
-.me img {
+.chat .me img {
     display: block;
     margin-left: 6px;
     vertical-align: top;
     float: right;
 }
 
-.other {
+.chat .other {
     width: 90%;
 }
 
-.other div {
+.chat .other div {
     width: 70%;
     display: inline-block;
 }
 
-.other div span {
+.chat .other div span {
     margin-left: 6px;
     display: inline-block;
     padding: 6px;
     background-color: #FCFCFC;
 }
 
-.other {
+.chat .other {
     text-align: left;
 }
 
@@ -264,5 +264,38 @@ table tr td {
 
 .fullview article {
     padding: 10%;
+    background-color: #fefefe;
+    font-size: x-large;
 }
+
+.fullview > article > div.me > img {
+    max-height: 10%;
+    max-width: 10%;
+    margin: 10px;
+    float: left;
+    margin-top: -20px;
+}
+
+.fullview > article > div.other > img {
+    max-height: 10%;
+    max-width: 10%;
+    margin: 10px;
+    float: left;
+    margin-top: -20px;
+}
+
+.fullview > article > div > div {
+    margin: 20px;
+    vertical-align: top;
+    height: 100%;
+}
+
+.fullview > article > div > div img {
+    max-height: 50%;
+    max-width: 50%;
+    vertical-align: text-top;
+    padding-left: 10px;
+    object-fit: scale-down;
+}
+
 /* end */
