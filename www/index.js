@@ -297,6 +297,22 @@ function initSpeech () {
     new SpeechSynthesisUtterance().voice = englishVoices[1];
 }
 
+function clickToFullView(target) {
+    if (target.classList.contains("me")
+        || target.classList.contains("other")) {
+        let targetContent = target.cloneNode(true);
+        let displayContainer = document.querySelector(".fullview");
+        document.querySelector(".fullview article").remove();
+        let newArticle = document.createElement("article");
+        newArticle.appendChild(targetContent);
+        displayContainer.appendChild(newArticle);
+        displayContainer.classList.remove("hidden");
+    }
+    else {
+        clickToFullView(target.parentElement);
+    }
+}
+
 async function init (commsWorker) {
     let chats = await getChats();
 
@@ -341,7 +357,6 @@ async function init (commsWorker) {
         }
     });
     msgInput.addEventListener("paste", evt => {
-        console.log("paste event", evt);
         pasteHandler(evt);
     });
 
@@ -352,6 +367,25 @@ async function init (commsWorker) {
         console.log("chatNameOrEmpty chatUrl", chatUrl);
         getAndDisplayChat(chatUrl);
     }
+
+    document.querySelector("div.fullview button")
+        .addEventListener("click", evt => {
+            if (!evt.target.parentElement.classList.contains("hidden")) {
+                evt.target.parentElement.classList.add("hidden");
+            }
+        });
+
+    // Click handler for making the wide view of a chat message
+    window.addEventListener("click", evt => {
+        let target = evt.target;
+        let chatPanel = document.querySelector("body article");
+        let doesContain = chatPanel.contains(target);
+        console.log("click event", doesContain, evt);
+
+        if (doesContain) {
+            clickToFullView(target);
+        }
+    });
 }
 
 window.addEventListener("load", evt => {

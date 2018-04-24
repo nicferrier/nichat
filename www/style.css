@@ -248,4 +248,21 @@ table tr td {
 }
 
 
+.fullview {
+    position: fixed;
+    top: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+}
+
+.fullview button {
+    margin: 10px;
+    position: absolute;
+    top: 0;
+}
+
+.fullview article {
+    padding: 10%;
+}
 /* end */
