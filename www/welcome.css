@@ -56,3 +56,7 @@ form div {
 input:invalid {
     border: solid red;
 }
+
+input[type=submit] {
+    width: 50%;
+}

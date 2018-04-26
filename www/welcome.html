@@ -8,22 +8,25 @@
       <h1><i>ni</i> hao. <i>ni</i> chat.</h1>
     </div>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data" action="welcome">
       <div class="hidden">click to snap</div>
       <video id="video"
-             tabindex="0"
              alt="click to snap"
              autoplay="1"></video>
       <canvas class="hidden"></canvas>
       <input type="email"
+             name="email"
              tabindex="1"
              required="1"
              placeholder="what's your email?"/>
       <input type="password"
+             name="password"
              tabindex="2"
              required="yes"
              minlength="6"
              placeholder="what's your password?"/>
+      <input type="submit"
+             name="register"/>
     </form>
   </body>
 </html>

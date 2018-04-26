@@ -76,6 +76,15 @@ exports.boot = function (port, options) {
         response.sendFile(path);
     });
 
+    app.post("/nichat/welcome",
+             mpParser.single("image"),
+             function (req, response) {
+                 let imageFile = req.file;
+                 console.log("image uploader got file", imageFile,
+                             " and params ", req.body);
+                 response.sendStatus(204);
+             });
+
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
         let { user } = req.params;
         console.log("got a user request", user);

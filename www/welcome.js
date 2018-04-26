@@ -27,15 +27,40 @@ window.addEventListener("load", evt => {
     video.onblur = function (evt) {
         document.querySelector("form div").classList.toggle("hidden");
     };
-    
-    // Trigger photo take
-    video.addEventListener("click", function () {
-        // video.pause();
+
+    let snap = function () {
         video.classList.toggle("hidden");
         canvas.classList.toggle("hidden");
         canvas.height = 225;
         canvas.width = 300;
         let context = canvas.getContext('2d');
 	context.drawImage(video, 0, 0, 640, 480, 0, 0, 300, 225);
-    });
+    };
+    
+    // Trigger photo take
+    video.addEventListener("click", snap);
+
+    document.querySelector("form")
+        .addEventListener("submit", async evt => {
+            evt.preventDefault();
+
+            if (canvas.classList.contains("hidden")) {
+                snap();
+
+                let formData = new FormData(evt.target);
+
+                let img = await new Promise((resolve, reject) => {
+                    canvas.toBlob(blob => { resolve(blob); });
+                }, "image/png");
+
+                formData.append("image", img, "image.png");
+                let response = await fetch(evt.target.action, {
+                    method: "POST",
+                    body: formData
+                });
+                console.log("response", response);
+            }
+        });
 });
+
+// welcome.js ends here
