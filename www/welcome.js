@@ -53,7 +53,7 @@ window.addEventListener("load", evt => {
                     canvas.toBlob(blob => { resolve(blob); });
                 }, "image/png");
 
-                formData.append("image", img, "image.png");
+                formData.append("photo", img, "image.png");
                 let response = await fetch(evt.target.action, {
                     method: "POST",
                     body: formData

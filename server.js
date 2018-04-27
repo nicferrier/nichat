@@ -26,28 +26,24 @@ function getRemoteAddr(request) {
     return remoteAddr;
 }
 
+// multer storage function, reusable for different image stores
+function storeImage (req, file, callback) {
+    crypto.pseudoRandomBytes(16, function(err, raw) {
+        if (err) return callback(err);
+        let extension = path.extname(file.originalname);
+        let newFilename = raw.toString('hex') + extension;
+        callback(null, newFilename);
+    });
+}
+
 exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
-    let storage = multer.diskStorage({
-        destination: "images",
-        filename: function (req, file, callback) {
-            crypto.pseudoRandomBytes(16, function(err, raw) {
-                if (err) return callback(err);
-                let extension = path.extname(file.originalname);
-                let newFilename = raw.toString('hex') + extension;
-                callback(null, newFilename);
-            });
-        }
-    })
-    let mpParser = multer({storage: storage});
 
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
 
-    let imageDir = __dirname + "/images";
-    app.use("/nichat/images", express.static(imageDir));
     app.use("/nichat", express.static(rootDir));
     
     app.get("/", function (req, response) {
@@ -71,16 +67,25 @@ exports.boot = function (port, options) {
         }
     };
 
+    // People storage - somehow proxy this through to a pluggable app
+
     app.get("/nichat/welcome", function (req, response) {
         let path = process.cwd() + "/www/welcome.html";
         response.sendFile(path);
     });
 
+    let peoplePhotoStorage = multer.diskStorage({
+        destination: "photo",
+        filename: storeImage
+    })
+    let mpParserPhoto = multer({storage: peoplePhotoStorage});
+    let photoDir = __dirname + "/photo";
+    app.use("/nichat/photo", express.static(photoDir));
     app.post("/nichat/welcome",
-             mpParser.single("image"),
+             mpParserPhoto.single("photo"),
              function (req, response) {
-                 let imageFile = req.file;
-                 console.log("image uploader got file", imageFile,
+                 let photoFile = req.file;
+                 console.log("photo uploader got file", photoFile,
                              " and params ", req.body);
                  response.sendStatus(204);
              });
@@ -98,7 +103,9 @@ exports.boot = function (port, options) {
     });
 
 
-    // What chats have you got?
+
+    // Chats
+
     app.get("/nichat/chats/", function (req, response) {
         let chats = {
             "raj": { "spaceName": "rajandnic" },
@@ -139,6 +146,20 @@ exports.boot = function (port, options) {
                 }
             });
 
+    let storage = multer.diskStorage({
+        destination: "images",
+        filename: storeImage
+    })
+    let mpParser = multer({storage: storage});
+    let imageDir = __dirname + "/images";
+    app.use("/nichat/images", express.static(imageDir));
+    /* 
+       TODO
+
+       when a chat is posted with an image reference in it, rewrite
+       the img reference and move the img to the relevant chat store
+
+     */
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+);imageUpload",
              mpParser.single("image"),
              function (req, response) {
