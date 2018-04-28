@@ -1,7 +1,7 @@
 // People storage - somehow proxy this through to a pluggable app
 // Copyright (C) 2018 by Nic Ferrier
 
-const fs = require('fs');
+const fs = require('./fsasync.js');
 const path = require('path');
 const { URL } = require('url');
 const crypto = require("crypto");
