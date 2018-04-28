@@ -9,6 +9,7 @@
         "test": "./test.js"
     },
     "dependencies": {
+        "bcrypt": "^2.0.1",
         "body-parser": "1.17.1",
         "eventsource": "^1.0.5",
         "express": "4.14.0",
