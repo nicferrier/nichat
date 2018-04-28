@@ -1,8 +1,10 @@
 window.addEventListener("load", evt => {
     let video = document.getElementById('video');
     let canvas = document.querySelector("canvas");
-    
-    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    let doVideo = true; // we can stop it while doing dev
+    if(doVideo
+       && navigator.mediaDevices
+       && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices
             .getUserMedia({video: {
                 /// this is for screen sharing but doesn't work.
@@ -14,6 +16,13 @@ window.addEventListener("load", evt => {
                 video.play();
             });
     }
+
+    document.querySelector("body button")
+        .addEventListener("click", evt => {
+            document.querySelector("body .join").classList.toggle("hidden");
+            document.querySelector("body .login").classList.toggle("hidden");
+            document.querySelector("body").classList.toggle("right");
+        });
 
     canvas.addEventListener("click", function () {
         canvas.classList.toggle("hidden");
@@ -40,25 +49,26 @@ window.addEventListener("load", evt => {
     // Trigger photo take
     video.addEventListener("click", snap);
 
-    document.querySelector("form")
+    document.querySelector("section.join form")
         .addEventListener("submit", async evt => {
             evt.preventDefault();
-
+            
             if (canvas.classList.contains("hidden")) {
                 snap();
 
                 let formData = new FormData(evt.target);
-
                 let img = await new Promise((resolve, reject) => {
                     canvas.toBlob(blob => { resolve(blob); });
                 }, "image/png");
-
                 formData.append("photo", img, "image.png");
+
                 let response = await fetch(evt.target.action, {
                     method: "POST",
                     body: formData
                 });
-                console.log("response", response);
+                if (response.url) {
+                    document.location = response.url;
+                }
             }
         });
 });

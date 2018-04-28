@@ -7,26 +7,48 @@
     <div>
       <h1><i>ni</i> hao. <i>ni</i> chat.</h1>
     </div>
+    <button accesskey="l" class="hidden">login</button>
+    <section class="login hidden">
+      <form method="POST" action="welcome">
+        <input type="email"
+               name="email"
+               tabindex="1"
+               required="1"
+               placeholder="what's your email?"/>
+        <input type="password"
+               name="password"
+               tabindex="2"
+               required="yes"
+               minlength="6"
+               placeholder="what's your password?"/>
+        <input type="submit"
+               name="login"
+               value="login"/>
+      </form>
+    </section>
 
-    <form method="POST" enctype="multipart/form-data" action="welcome">
-      <div class="hidden">click to snap</div>
-      <video id="video"
-             alt="click to snap"
-             autoplay="1"></video>
-      <canvas class="hidden"></canvas>
-      <input type="email"
-             name="email"
-             tabindex="1"
-             required="1"
-             placeholder="what's your email?"/>
-      <input type="password"
-             name="password"
-             tabindex="2"
-             required="yes"
-             minlength="6"
-             placeholder="what's your password?"/>
-      <input type="submit"
-             name="register"/>
-    </form>
+    <section class="join">
+      <form method="POST" enctype="multipart/form-data" action="welcome">
+        <div class="hidden">click to snap</div>
+        <video id="video"
+               alt="click to snap"
+               autoplay="1"></video>
+        <canvas class="hidden"></canvas>
+        <input type="email"
+               name="email"
+               tabindex="1"
+               required="1"
+               placeholder="what's your email?"/>
+        <input type="password"
+               name="password"
+               tabindex="2"
+               required="yes"
+               minlength="6"
+               placeholder="what's your password?"/>
+        <input type="submit"
+               name="register"
+               value="join"/>
+      </form>
+    </section>
   </body>
 </html>

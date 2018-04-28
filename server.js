@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 const crypto = require("crypto");
+const { spawn } = require('child_process');
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -10,11 +11,14 @@ const multer = require("multer");
 const indexer = require("serve-index");
 const SSE = require("sse-node");
 const http = require("http");
+const proxy = require('express-http-proxy');
 
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
 const app = express();
+
+var child;
 
 function getRemoteAddr(request) {
     let ip = request.headers["x-forwarded-for"]
@@ -43,65 +47,12 @@ exports.boot = function (port, options) {
 
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
-
     app.use("/nichat", express.static(rootDir));
     
     app.get("/", function (req, response) {
         console.log("redirecting to routed path /nichat");
         response.redirect("/nichat");
     });
-
-
-    const users = {
-        "nicferrier@localhost": {
-            "photo": "/nichat/photos/nic.jpg"
-        },
-        "rajesh.shah@localhost": {
-            "photo": "/nichat/photos/raj.jpg"
-        },
-        "dan.flower@localhost": {
-            "photo": "/nichat/photos/dan.jpg"
-        },
-        "audrey@localhost": {
-            "photo": "/nichat/photos/audrey.jpg"
-        }
-    };
-
-    // People storage - somehow proxy this through to a pluggable app
-
-    app.get("/nichat/welcome", function (req, response) {
-        let path = process.cwd() + "/www/welcome.html";
-        response.sendFile(path);
-    });
-
-    let peoplePhotoStorage = multer.diskStorage({
-        destination: "photo",
-        filename: storeImage
-    })
-    let mpParserPhoto = multer({storage: peoplePhotoStorage});
-    let photoDir = __dirname + "/photo";
-    app.use("/nichat/photo", express.static(photoDir));
-    app.post("/nichat/welcome",
-             mpParserPhoto.single("photo"),
-             function (req, response) {
-                 let photoFile = req.file;
-                 console.log("photo uploader got file", photoFile,
-                             " and params ", req.body);
-                 response.sendStatus(204);
-             });
-
-    app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
-        let { user } = req.params;
-        console.log("got a user request", user);
-        let data = users[user];
-        response.json(data);
-    });
-
-    app.get("/nichat/people/", function (req, response) {
-        console.log("people request", request);
-        response.sendStatus(204);
-    });
-
 
 
     // Chats
@@ -190,8 +141,21 @@ exports.boot = function (port, options) {
                  });
                  response.sendStatus(204);
              });
-    
+
     app.listen(port, "localhost", function () {
+        let nodeBin = process.argv[0];
+        child = spawn(nodeBin, ["peopleserver.js"]);
+        child.stdout.pipe(process.stdout);
+        app.all("/nichat/welcome", function (req, response) {
+            console.log("url", req.url); 
+            options = {
+                parseReqBody: false,
+                reqAsBuffer: true,
+                reqBodyEncoding: null
+            };
+            let proxyFunc = proxy("http://localhost:8082", options);
+            proxyFunc(req, response);
+        });
         console.log("listening on " + port);
         eliza.start();
     });

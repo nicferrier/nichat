@@ -14,6 +14,15 @@ body {
     display: none;
 }
 
+.right {
+    flex-flow: row-reverse;
+}
+
+h1 {
+    vertical-align: middle;
+    margin: 0 auto;
+}
+
 body div, form {
     display: flex;
     flex-direction: column;
@@ -21,9 +30,8 @@ body div, form {
     height: 80%;
 }
 
-h1 {
-    vertical-align: middle;
-    margin: 0 auto;
+.login form {
+    /* how to right align the button? */
 }
 
 form * {
@@ -59,4 +67,7 @@ input:invalid {
 
 input[type=submit] {
     width: 50%;
+    font-size: large;
+    padding-bottom: 12px;
+    padding-top: 8px;
 }
