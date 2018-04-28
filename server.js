@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 const crypto = require("crypto");
-const { spawn } = require('child_process');
+const { spawn } = require("child_process");
+const { Transform } = require("stream");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -145,15 +146,35 @@ exports.boot = function (port, options) {
     app.listen(port, "localhost", function () {
         let nodeBin = process.argv[0];
         child = spawn(nodeBin, ["peopleserver.js"]);
-        child.stdout.pipe(process.stdout);
+        let proxyUrl = null;
+        let portFinder = new Transform({
+            transform(chunk, encoding, callback) {
+                chunk.toString()
+                    .split("\n")
+                    .forEach(line => {
+                        if (proxyUrl == null
+                            && line.startsWith("listening on")) {
+                            let [_, portStr] = /listening on[ ]+([0-9]+)/.exec(line);
+                            let port = parseInt(portStr);
+                            proxyUrl = "http://localhost:" + port;
+                            console.log("url to talk to proxy", proxyUrl);
+                        }
+                });
+                this.push("peopleserver::" + chunk.toString());
+                callback();
+            }
+        });
+        child.stdout
+            .pipe(portFinder)
+            .pipe(process.stdout);
+
         app.all("/nichat/welcome", function (req, response) {
-            console.log("url", req.url); 
             options = {
                 parseReqBody: false,
                 reqAsBuffer: true,
                 reqBodyEncoding: null
             };
-            let proxyFunc = proxy("http://localhost:8082", options);
+            let proxyFunc = proxy(proxyUrl, options);
             proxyFunc(req, response);
         });
         console.log("listening on " + port);

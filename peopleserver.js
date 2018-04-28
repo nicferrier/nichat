@@ -108,9 +108,9 @@ exports.boot = function (port, options) {
         response.sendStatus(204);
     });
 
-    app.listen(port, "localhost", function () {
+    let listener = app.listen(0, "localhost", function () {
         // how to get a random port?
-        console.log("listening on ", port);
+        console.log("listening on ", listener.address().port);
     });
 };
 
