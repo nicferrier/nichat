@@ -1,3 +1,5 @@
+// nichat server
+// Copyright (C) 2018 by Nic Ferrier
 
 const fs = require('fs');
 const path = require('path');

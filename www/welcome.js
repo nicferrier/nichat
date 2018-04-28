@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by Nic Ferrier
+
 window.addEventListener("load", evt => {
     let video = document.getElementById('video');
     let canvas = document.querySelector("canvas");

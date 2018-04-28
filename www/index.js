@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by Nic Ferrier
+
 import hton from "./hton.js";
 
 const me = "nicferrier@localhost";
