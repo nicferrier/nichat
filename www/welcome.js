@@ -7,12 +7,9 @@ window.addEventListener("load", evt => {
     if(doVideo
        && navigator.mediaDevices
        && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-            .getUserMedia({video: {
-                /// this is for screen sharing but doesn't work.
-                /// just use true instead of the object for normal camera
-                mediaSource: "screen" 
-            }})
+        navigator
+            .mediaDevices
+            .getUserMedia({video: true})
             .then(stream => {
                 video.src = window.URL.createObjectURL(stream);
                 video.play();
@@ -24,6 +21,7 @@ window.addEventListener("load", evt => {
             document.querySelector("body .join").classList.toggle("hidden");
             document.querySelector("body .login").classList.toggle("hidden");
             document.querySelector("body").classList.toggle("right");
+            video.pause();
         });
 
     canvas.addEventListener("click", function () {

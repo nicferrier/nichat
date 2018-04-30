@@ -43,22 +43,12 @@ var photosList = {}
 
 async function getUserPhoto(username)
 {
-    if (photosList[username] === undefined) {
-        console.log("photo trying to retrieve for", username);
-        let url = document.location.origin
-            + "/" + document.location.pathname.split("/")[1]
-            + "/people/"
-            + username;
-        console.log("photo", url);
-        let response = await fetch(url);
-        let json = await response.json();
-        let { photo } = await json;
-        photosList[username] = photo;
-        return photo;
-    }
-    else {
-        return photosList[username];
-    }
+    let url = document.location.origin
+        + "/" + document.location.pathname.split("/")[1]
+        + "/people/"
+        + username
+        + "/photo";
+    return url;
 }
 
 function displayChatTime (chat, msgTime) {

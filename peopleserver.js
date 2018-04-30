@@ -25,7 +25,19 @@ function storeImage (req, file, callback) {
 
 let users = {};
 
+async function saveUser(email, password, photoFile) {
+    let path = __dirname + "/people.json";
+    let pathExists = await fs.existsAsync(path);
+    users = pathExists ? await fs.readFileAsync(path) : {};
+    users[email] = {
+        password: password,
+        photoFile: photoFile
+    };
+    await fs.writeFileAsync(path, JSON.stringify(json, null, 2));
+}
+
 function checkPassword(email, password) {
+    // should check the people file?
     let user = users[email];
     if (user === undefined) {
         return false;
@@ -33,7 +45,10 @@ function checkPassword(email, password) {
     return user.password == password;
 }
 
-exports.boot = function (port, options) {
+exports.boot = async function (options) {
+    let file = await fs.readFileAsync(__dirname + "/people.json");
+    users = JSON.parse(file);
+
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
@@ -77,16 +92,12 @@ exports.boot = function (port, options) {
                  }
                  else {
                      // check register first
-                     users[email] = {
-                         photo: photoFile,
-                         password: password
-                     };  // don't forget to save it
-                     
+                     saveUser(email, password, photoFile);
                  }
                  response.cookie("nichat", email + ":" + password); // should hash it
                  response.redirect("/nichat/");
              });
-
+    
     app.get("/nichat/people$", function (req, response) {
         // Filter out the unnnecessary keys
         let usersJson = {};
@@ -97,16 +108,18 @@ exports.boot = function (port, options) {
         response.json(usersJson);
     });
 
-    app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
+    app.get("/nichat/people/:user([@A-Za-z0-9.-]+)/photo", function (req, response) {
         let { user } = req.params;
-        console.log("got a user request", user);
         let data = users[user];
-        response.json(data);
+        let photo = data.photoFile;
+        response.sendFile(__dirname + "/" + photo);
     });
 
-    app.get("/nichat/people/", function (req, response) {
-        console.log("people request", request);
-        response.sendStatus(204);
+    app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
+        let { user } = req.params;
+        let data = users[user];
+        delete data.password;
+        response.json(data);
     });
 
     let listener = app.listen(0, "localhost", function () {
@@ -115,6 +128,6 @@ exports.boot = function (port, options) {
     });
 };
 
-exports.boot(8082);
+exports.boot();
 
 // end of people

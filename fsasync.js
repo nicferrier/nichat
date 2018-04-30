@@ -72,7 +72,6 @@ fs.mkdirAsync = function (path) {
     });
 };
 
-exports = fs;
+module.exports = fs;
 
 // fsasync.js ends here
-
