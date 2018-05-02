@@ -2,6 +2,20 @@
 
 const fs = require("fs");
 
+fs.readdirAsync = function (folder) {
+    return new Promise(function (resolve, reject) {
+        try {
+            fs.readdir(folder, function (err, files) {
+                if (err) reject(err);
+                else resolve(files);
+            });
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+};
+
 fs.readFileAsync = function (filename) {
     return new Promise(function (resolve, reject) {
         try {
