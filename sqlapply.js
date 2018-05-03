@@ -22,7 +22,7 @@ exports.initDb = async function (directory, dbConfig) {
         await sqlToRun.forEachAsync(async sql => {
             try {
                 let res = await client.query(sql);
-                console.log(sql, res.rows);
+                // console.log(sql, res.rows);
             }
             catch (e) {
                 console.log("error doing", sql, e);

@@ -10,6 +10,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const http = require("http");
+const db = require("./sqlapply.js");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -23,26 +25,60 @@ function storeImage (req, file, callback) {
     });
 }
 
-let users = {};
+function bcHash (value, seed) {
+    return new Promise((resolve, reject) => {
+        bcrypt.hash(value, seed, function(err, hash) {
+            if (err) reject(err);
+            else resolve(hash);
+        });
+    });
+};
+
+function bCompare (value, hash) {
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(value, hash, function(err, result) {
+            if (err) reject(err);
+            else resolve(result);
+        });
+    });
+};
+
+
+let dbClient = undefined;
 
 async function saveUser(email, password, photoFile) {
-    let path = __dirname + "/people.json";
-    let pathExists = await fs.existsAsync(path);
-    users = pathExists ? await fs.readFileAsync(path) : {};
-    users[email] = {
-        password: password,
-        photoFile: photoFile
-    };
-    await fs.writeFileAsync(path, JSON.stringify(json, null, 2));
+    try {
+        let encPassword = await bcHash(password, 10);
+        let photoFileData = await fs.readFileAsync(photoFile.path, "base64");
+        await dbClient.query("select make_user($1, $2, $3, $4);", [
+            email,
+            email,
+            encPassword,
+            photoFileData
+        ]);
+    }
+    catch (e) {
+        console.log("error hashing", e);
+    }
 }
 
-function checkPassword(email, password) {
-    // should check the people file?
-    let user = users[email];
-    if (user === undefined) {
+// eg: checkPassword("nic@ferrier.me.uk", "secretthing");
+async function checkPassword(email, password) {
+    let sql = "select password "
+        + "from user_password p, chat_user u "
+        + "where u.id=p.id and u.email = $1 and u.enabled=true";
+    try {
+        let result = await dbClient.query(sql, [email]);
+        let {rows} = result;
+        let [row] = rows;
+        let { password:hashedPassword } = row;
+        let isEqual = await bCompare(password, hashedPassword);
+        return isEqual;
+    }
+    catch (e) {
+        console.log("checkPassword failed", e);
         return false;
     }
-    return user.password == password;
 }
 
 exports.boot = async function (options) {
@@ -80,10 +116,6 @@ exports.boot = async function (options) {
                  // params  { email: 'nic@ferrier.me.uk', password: 'jqwdknwqdnq' }
                  let photoFile = req.file;
                  let { email, password } = req.body;
-                 console.log("people photofile, params",
-                             req.get("Content-Type"),
-                             photoFile,
-                             email);
                  if (photoFile == null) {
                      if (checkPassword(email, password)) {
                          response.sendStatus(401);
@@ -94,7 +126,7 @@ exports.boot = async function (options) {
                      // check register first
                      saveUser(email, password, photoFile);
                  }
-                 response.cookie("nichat", email + ":" + password); // should hash it
+                 response.cookie("nichat", email + ":" + password);
                  response.redirect("/nichat/");
              });
     
@@ -122,7 +154,16 @@ exports.boot = async function (options) {
         response.json(data);
     });
 
-    let listener = app.listen(0, "localhost", function () {
+    let listener = app.listen(0, "localhost", async function () {
+        // Start the db
+        dbClient = await db.initDb(__dirname + "/sql-people", {
+            user: 'nichat',
+            database: 'nichat',
+            host: 'localhost',
+            port: 5432
+        });
+        //await dbClient.end();
+
         // how to get a random port?
         console.log("listening on ", listener.address().port);
     });
