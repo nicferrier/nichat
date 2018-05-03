@@ -16,10 +16,11 @@ fs.readdirAsync = function (folder) {
     });
 };
 
-fs.readFileAsync = function (filename) {
+fs.readFileAsync = function (filename, encoding) {
     return new Promise(function (resolve, reject) {
         try {
-            fs.readFile(filename, "utf8", function (err, buffer) {
+            let enc = (encoding === undefined) ? "utf8" : encoding;
+            fs.readFile(filename, enc, function (err, buffer) {
                 if (err) reject(err);
                 else resolve(buffer);
             });
@@ -30,10 +31,11 @@ fs.readFileAsync = function (filename) {
     });
 };
 
-fs.writeFileAsync = function (filename, data) {
+fs.writeFileAsync = function (filename, data, encoding) {
     return new Promise(function (resolve, reject) {
         try {
-            fs.writeFile(filename, data, "utf8", function (err) {
+            let enc = encoding === undefined ? "utf8" : encoding;
+            fs.writeFile(filename, data, enc, function (err) {
                 if (err) reject(err);
                 else resolve();
             });
