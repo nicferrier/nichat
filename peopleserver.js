@@ -46,22 +46,6 @@ function bCompare (value, hash) {
 
 let dbClient = undefined;
 
-async function saveUser(email, password, photoFile) {
-    try {
-        let encPassword = await bcHash(password, 10);
-        let photoFileData = await fs.readFileAsync(photoFile.path, "base64");
-        await dbClient.query("select make_user($1, $2, $3, $4);", [
-            email,
-            email,
-            encPassword,
-            photoFileData
-        ]);
-    }
-    catch (e) {
-        console.log("error hashing", e);
-    }
-}
-
 // eg: checkPassword("nic@ferrier.me.uk", "secretthing");
 async function checkPassword(email, password) {
     let sql = "select password "
@@ -81,10 +65,42 @@ async function checkPassword(email, password) {
     }
 }
 
-exports.boot = async function (options) {
-    let file = await fs.readFileAsync(__dirname + "/people.json");
-    users = JSON.parse(file);
+async function saveUser(email, password, photoFile) {
+    try {
+        let encPassword = await bcHash(password, 10);
+        let photoFileData = await fs.readFileAsync(photoFile.path, "base64");
+        await dbClient.query("select make_user($1, $2, $3, $4);", [
+            email,
+            email,
+            encPassword,
+            photoFileData
+        ]);
+    }
+    catch (e) {
+        console.log("error hashing", e);
+    }
+}
 
+async function getAccountPhoto(email, response) {
+    let sql = "select data "
+        + "from chat_user u, user_photo p "
+        + "where p.user_id = u.id "
+        + "and u.enabled=true "
+        + "and u.email=$1";
+    try {
+        let result = await dbClient.query(sql, [email]);
+        let {rows} = result;
+        let [{data}] = rows;
+        let binary = Buffer.from(data, 'base64');
+        response.set("Content-Type", "image/png");
+        response.send(binary);
+    }
+    catch (e) {
+        console.log("getAccountPhoto", e);
+    }
+}
+
+exports.boot = async function (options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
@@ -102,13 +118,13 @@ exports.boot = async function (options) {
         console.log("root!");
     });
 
-
     let peoplePhotoStorage = multer.diskStorage({
         destination: "photo",
         filename: storeImage
     })
     let mpParserPhoto = multer({storage: peoplePhotoStorage});
     let photoDir = __dirname + "/photo";
+
     app.use("/nichat/photo", express.static(photoDir));
     app.post("/nichat/welcome",
              mpParserPhoto.single("photo"),
@@ -132,19 +148,20 @@ exports.boot = async function (options) {
     
     app.get("/nichat/people$", function (req, response) {
         // Filter out the unnnecessary keys
+        /*
         let usersJson = {};
         Object.keys(users).forEach(email => {
             let { photo } = users[email];
             usersJson[email] = { photo: photo };l
         });
         response.json(usersJson);
+        */
+        response.sendStatus(204);
     });
 
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)/photo", function (req, response) {
         let { user } = req.params;
-        let data = users[user];
-        let photo = data.photoFile;
-        response.sendFile(__dirname + "/" + photo);
+        getAccountPhoto(user, response);
     });
 
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)", function (req, response) {
