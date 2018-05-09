@@ -55,6 +55,12 @@ body article {
     background-color: #F5F5F5;
 }
 
+article.empty {
+    background-image: url("speech.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
 .chat-header {
     height: 50px;
     line-height: 50px;
@@ -62,6 +68,7 @@ body article {
     flex: initial;
     border-bottom: solid 1px #E1E1E1;
 }
+
 
 .chat-header h2 {
     text-align: right;
@@ -191,6 +198,8 @@ div.controls {
     height: 0px !important;
     margin: 0px !important;
     padding: 0px !important;
+    position: absolute !important;
+    visibiity: hidden;
 }
 
 .entry-control {

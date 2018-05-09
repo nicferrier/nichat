@@ -5,6 +5,7 @@ const fs = require('./fsasync.js');
 const path = require('path');
 const { URL } = require('url');
 const crypto = require("crypto");
+const { spawn } = require("child_process");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -12,6 +13,8 @@ const multer = require("multer");
 const http = require("http");
 const db = require("./sqlapply.js");
 const bcrypt = require("bcrypt");
+
+const adjectives = require("./adjectives.js");
 
 const app = express();
 
@@ -44,6 +47,7 @@ function bCompare (value, hash) {
 };
 
 
+let pgChild = undefined;
 let dbClient = undefined;
 
 // eg: checkPassword("nic@ferrier.me.uk", "secretthing");
@@ -90,14 +94,24 @@ async function getAccountPhoto(email, response) {
     try {
         let result = await dbClient.query(sql, [email]);
         let {rows} = result;
-        let [{data}] = rows;
-        let binary = Buffer.from(data, 'base64');
-        response.set("Content-Type", "image/png");
-        response.send(binary);
+        console.log("rows", rows);
+        if (rows.length < 1) {
+            response.sendStatus(404);
+        }
+        else {
+            let [{data}] = rows;
+            let binary = Buffer.from(data, 'base64');
+            response.set("Content-Type", "image/png");
+            response.send(binary);
+        }
     }
     catch (e) {
         console.log("getAccountPhoto", e);
     }
+}
+
+function rnd (max) {
+    return Math.floor(Math.random() * Math.floor(max));
 }
 
 exports.boot = async function (options) {
@@ -108,7 +122,15 @@ exports.boot = async function (options) {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
 
-    app.get("/nichat/welcome", function (req, response) {
+    
+    app.get("/nichat/welcome/name", function (req, response) {
+        console.log("hit", adjectives[10]);
+        let word1 = adjectives[rnd(adjectives.length)];
+        let word2 = adjectives[rnd(adjectives.length)];
+        response.json({ word1: word1, word2: word2 });
+    });
+
+    app.get("/nichat/welcome$", function (req, response) {
         console.log("welcome");
         let path = process.cwd() + "/www/welcome.html";
         response.sendFile(path);
@@ -132,14 +154,20 @@ exports.boot = async function (options) {
                  // params  { email: 'nic@ferrier.me.uk', password: 'jqwdknwqdnq' }
                  let photoFile = req.file;
                  let { email, password } = req.body;
-                 if (photoFile == null) {
+                 if (photoFile === undefined && req.body.selectedPhoto === undefined) {
                      if (checkPassword(email, password)) {
                          response.sendStatus(401);
                          return;
                      }
+                 } // We use this to make a nice simple registration flow work
+                 else if (req.body.selectedPhoto !== undefined) {
+                     let imageName = req.body.selectedPhoto;
+                     console.log("imageName", imageName);
+                     let imagePath = "www/photos/" + imageName + ".jpg";
+                     saveUser(email, password, { path: imagePath });
                  }
                  else {
-                     // check register first
+                     // FIXME: check register first
                      saveUser(email, password, photoFile);
                  }
                  response.cookie("nichat", email + ":" + password);
@@ -172,13 +200,20 @@ exports.boot = async function (options) {
     });
 
     let listener = app.listen(0, "localhost", async function () {
+        // bootDocker();
         // Start the db
-        dbClient = await db.initDb(__dirname + "/sql-people", {
+        let dbConfig = {
             user: 'nichat',
             database: 'nichat',
             host: 'localhost',
-            port: 5432
-        });
+            port: 5434
+        };
+        try {
+            dbClient = await db.initDb(__dirname + "/sql-people", dbConfig);
+        }
+        catch (e) {
+            dbClient = await db.initDb(__dirname + "/sql-people", dbConfig);
+        }
         //await dbClient.end();
 
         // how to get a random port?

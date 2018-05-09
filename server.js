@@ -71,10 +71,12 @@ exports.boot = function (port, options) {
     // Chats
 
     app.get("/nichat/chats/", function (req, response) {
+        /*
         let chats = {
             "raj": { "spaceName": "rajandnic" },
             "audrey": { "spaceName": "audreyandnic" }
-        };
+            };*/
+        let chats = {};
         response.json(chats);
     });
 
@@ -174,7 +176,7 @@ exports.boot = function (port, options) {
                 console.log("url to talk to proxy", proxyUrl);
 
                 // Handle the proxy
-                app.all("/nichat/welcome", function (req, response) {
+                app.all(new RegExp("/nichat/welcome"), function (req, response) {
                     proxyFunc(req, response);
                 });
 

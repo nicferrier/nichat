@@ -11,7 +11,7 @@ body {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .right {
@@ -60,6 +60,42 @@ form div {
         height: 75px;
     }
 }
+
+
+div#imgSelect {
+    display:flex;
+    flex-direction: row;
+    background: transparent;
+}
+
+div#imgSelect label {
+    margin: 0;
+    padding: 0;
+}
+
+div#imgSelect label > img {
+    margin: 0;
+    padding: 0;
+}
+
+
+label > input[type="radio"] {
+    visibility: hidden;
+    position: absolute;
+}
+
+label > input[type="radio"] + img {
+    width: 75px;
+    height: 75px;
+    object-fit: cover;
+    cursor: pointer;
+    border:2px solid transparent;
+}
+
+label > input[type="radio"]:checked + img {
+  border:2px solid red !important;
+}
+
 
 input:invalid {
     border: solid red;

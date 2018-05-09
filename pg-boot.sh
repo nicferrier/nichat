@@ -6,13 +6,13 @@
 docker run -d \
        -v nichat-pgdata:/var/lib/postgresql/data \
        -e POSTGRES_USER=nichat \
-       -p 5432:5432 postgres
+       -p 5434:5432 postgres
 
-# Once it starts you should be able to connect to port 5432 with the
+# Once it starts you should be able to connect to port 5435 with the
 #  user nichat and the db nichat
 
 # If you install postgres client tools you can:
 #
-#    psql -h localhost -p 5432 nichat nichat
+#    psql -h localhost -p 5435 nichat nichat
 
 # End

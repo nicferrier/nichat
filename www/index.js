@@ -202,7 +202,9 @@ async function getChats() {
         let spaceName = myChats[chat].spaceName;
         chats[chat].loaded = false;
         let spaceNameUrl = getSpaceNameUrl(spaceName);
-        console.log("getChats getChat", spaceName, "url", spaceNameUrl, "tabindex", i);
+        console.log("getChats getChat", spaceName,
+                    "url", spaceNameUrl,
+                    "tabindex", i);
         let json = await getChat(spaceNameUrl);
         let members = json.members;
         let membersNotMe = members.filter(member => member != me);
@@ -243,6 +245,7 @@ function getAssetsUrl(asset) {
 
 function getChatNameOrEmpty() {
     let url = document.location.pathname.split("/");
+    console.log("getChatNameOrEmpty url", url, document.location.pathname);
     let [ _, chat, resource, name ] = url;
     if (resource == "chat") {
         return name;
@@ -355,7 +358,8 @@ async function init (commsWorker) {
 
     let chatNameOrEmpty = getChatNameOrEmpty();
     console.log("chatNameOrEmpty", chatNameOrEmpty);
-    if (chatNameOrEmpty != []) {
+    if (chatNameOrEmpty instanceof Array
+       && chatNameOrEmpty.length > 0) {
         let chatUrl = document.location.href;
         console.log("chatNameOrEmpty chatUrl", chatUrl);
         getAndDisplayChat(chatUrl);

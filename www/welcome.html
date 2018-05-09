@@ -28,12 +28,32 @@
     </section>
 
     <section class="join">
-      <form method="POST" enctype="multipart/form-data" action="welcome">
+      <form name="register" method="POST" action="welcome" enctype="multipart/form-data">
         <div class="hidden">click to snap</div>
         <video id="video"
+               class="hidden"
                alt="click to snap"
                autoplay="1"></video>
         <canvas class="hidden"></canvas>
+        <button accesskey="s" class="hidden">choose img</button>
+        <div id="imgSelect" >
+          <label>
+            <input type="radio" name="selectedPhoto" value="audrey"/>
+            <img src="photos/audrey.jpg"/>
+          </label>
+          <label>
+            <input type="radio" name="selectedPhoto" value="raj"/>
+            <img src="photos/raj.jpg"/>
+          </label>
+          <label>
+            <input type="radio" name="selectedPhoto" value="blackwidow"/>
+            <img src="photos/blackwidow.jpg"/>
+          </label>
+          <label>
+            <input type="radio" name="selectedPhoto" value="brie-larson"/>
+            <img src="photos/brie-larson.jpg"/>
+          </label>
+        </div>
         <input type="email"
                name="email"
                tabindex="1"
