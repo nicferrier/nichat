@@ -13,6 +13,7 @@ const multer = require("multer");
 const http = require("http");
 const db = require("./sqlapply.js");
 const bcrypt = require("bcrypt");
+const cookieParser = require('cookie-parser');
 
 const adjectives = require("./adjectives.js");
 
@@ -119,12 +120,12 @@ exports.boot = async function (options) {
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
 
+    app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
 
-    
+    // Just used to make names up - just because it's easier to test
     app.get("/nichat/welcome/name", function (req, response) {
-        console.log("hit", adjectives[10]);
         let word1 = adjectives[rnd(adjectives.length)];
         let word2 = adjectives[rnd(adjectives.length)];
         response.json({ word1: word1, word2: word2 });
@@ -148,6 +149,7 @@ exports.boot = async function (options) {
     let photoDir = __dirname + "/photo";
 
     app.use("/nichat/photo", express.static(photoDir));
+
     app.post("/nichat/welcome",
              mpParserPhoto.single("photo"),
              function (req, response) {
@@ -184,6 +186,11 @@ exports.boot = async function (options) {
         });
         response.json(usersJson);
         */
+        response.sendStatus(204);
+    });
+
+    app.get("/nichat/people/_/photo", function (req, response) {
+        console.log("cookie", req.cookies);
         response.sendStatus(204);
     });
 

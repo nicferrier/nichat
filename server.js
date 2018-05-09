@@ -15,11 +15,13 @@ const indexer = require("serve-index");
 const SSE = require("sse-node");
 const http = require("http");
 const proxy = require('express-http-proxy');
-
+const cookieParser = require('cookie-parser');
+ 
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
 const app = express();
+
 
 /* testFunction takes a line */
 function grepper(testFunction) {
@@ -58,6 +60,7 @@ exports.boot = function (port, options) {
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
 
+    app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
     app.use("/nichat", express.static(rootDir));
@@ -177,10 +180,12 @@ exports.boot = function (port, options) {
 
                 // Handle the proxy
                 app.all(new RegExp("/nichat/welcome"), function (req, response) {
+                    console.log("cookies received", req.cookies);
                     proxyFunc(req, response);
                 });
 
                 app.all(new RegExp("/nichat/people"), function (req, response) {
+                    console.log("cookies received", req.cookies);
                     proxyFunc(req, response);
                 });
             }
