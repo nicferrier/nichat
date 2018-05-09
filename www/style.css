@@ -61,6 +61,10 @@ article.empty {
     background-repeat: no-repeat;
 }
 
+article.empty > div.hidden > section {
+    display: none !important;
+}
+
 .chat-header {
     height: 50px;
     line-height: 50px;
@@ -68,7 +72,6 @@ article.empty {
     flex: initial;
     border-bottom: solid 1px #E1E1E1;
 }
-
 
 .chat-header h2 {
     text-align: right;
@@ -199,7 +202,7 @@ div.controls {
     margin: 0px !important;
     padding: 0px !important;
     position: absolute !important;
-    visibiity: hidden;
+    visibiity: hidden !important;
 }
 
 .entry-control {
