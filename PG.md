@@ -12,7 +12,25 @@ dockerCommand = "docker run -d -v nichat-pgdata:/var/lib/postgresql/data -e POST
 * volume nichat-pgdata
 * no need for much security right now
  * we could use docker compose as an eventual solution
- 
+
+
+## Using postgresql without docker
+
+I had some troubles with an experimental build of Windows and Docker
+and so had to do this.
+
+Presuming ubuntu:
+
+```
+sudo apt-get install postgresql-10
+## installs a "main" cluster
+sudo -u postgres createuser -s nichat
+sudo -u postgres createdb -O nichat nichat
+sudo -u postgres sed -i -e 's/md5/trust/' /etc/postgresql/10/main/pg_hba.conf
+sudo -u postgres pg_ctlcluster 10 main stop
+sudo -u postgres pg_ctlcluster 10 main start
+```
+
 
 ## making tables
 
@@ -22,4 +40,5 @@ All the table and other creation is done at start up by reading tables.
 ## services
 
 nichat is microservices. Each service has it's own db.
+
 
