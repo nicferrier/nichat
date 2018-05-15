@@ -23,15 +23,9 @@ const chatstore = require("./chatstore.js");
 const app = express();
 
 
-/* testFunction takes a line */
-function grepper(testFunction) {
-    return new Transform({
-        transform(chunk, encoding, callback) {
-            let dataBuf = chunk.toString();
-            dataBuf.split("\n").forEach(testFunction);
-            this.push("peopleserver::" + dataBuf);
-            callback();
-        }
+function eventToHappen(eventFn) {
+    return new Promise((resolve, reject) => {
+        eventFn(resolve);
     });
 }
 
@@ -160,43 +154,58 @@ exports.boot = function (port, options) {
                  response.sendStatus(204);
              });
 
-    let child;
-    app.listen(port, "localhost", function () {
+    let grep = function (regex, fn) {
+        return new Transform({
+            transform(chunk, encoding, callback) {
+                let dataBuf = chunk.toString();
+                dataBuf.split("\n").forEach(line => {
+                    let result = regex.exec(line);
+                    if (result != null) {
+                        fn(result);
+                    }
+                });
+                this.push("peopleserver::" + dataBuf);
+                callback();
+            }
+        });
+    }
+
+    let child; // make this outside to stop it dieing
+    app.listen(port, "localhost", async function () {
         let proxyOptions = {
             parseReqBody: false,
             reqAsBuffer: true,
             reqBodyEncoding: null
         };
 
-        let proxyUrl = null;
-        let proxyFunc = null;
-        let grepping = grepper(line => {
-            if (proxyUrl == null && line.startsWith("listening on")) {
-                let [_, portStr] = /listening on[ ]+([0-9]+)/.exec(line);
-                let port = parseInt(portStr);
-                proxyUrl = "http://localhost:" + port;
-                proxyFunc = proxy(proxyUrl, proxyOptions);
-                console.log("url to talk to proxy", proxyUrl);
-
-                // Handle the proxy
-                app.all(new RegExp("/nichat/welcome"), function (req, response) {
-                    // console.log("cookies received", req.cookies);
-                    proxyFunc(req, response);
-                });
-
-                app.all(new RegExp("/nichat/people"), function (req, response) {
-                    // console.log("cookies received", req.cookies);
-                    proxyFunc(req, response);
-                });
-            }
-        });
-
         let nodeBin = process.argv[0];
         child = spawn(nodeBin, ["peopleserver.js"]);
-        child.stdout
-            .pipe(grepping)
-            .pipe(process.stdout);
         child.stderr.pipe(process.stderr);
+        child.stdout
+            .pipe(grep(/listening on[ ]+([0-9]+)/,
+                       (res => child.emit("listening", res))))
+            .pipe(process.stdout);
+
+        // Catch the exit
+        let onListen = proc => child.on("listening", proc);
+        let result = await eventToHappen(onListen);
+        let [_, portStr] = result;
+        let port = parseInt(portStr); // set port
+
+        let proxyUrl = "http://localhost:" + port;
+        let proxyFunc = proxy(proxyUrl, proxyOptions);
+        console.log("url to talk to proxy", proxyUrl);
+        
+        // Handle the proxy
+        app.all(new RegExp("/nichat/welcome"), function (req, response) {
+            // console.log("cookies received", req.cookies);
+            proxyFunc(req, response);
+        });
+        
+        app.all(new RegExp("/nichat/people"), function (req, response) {
+            // console.log("cookies received", req.cookies);
+            proxyFunc(req, response);
+        });
 
         console.log("listening on " + port);
         eliza.start();
