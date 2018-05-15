@@ -89,6 +89,7 @@ window.addEventListener("load", evt => {
             
             let response = await fetch(evt.target.action, {
                 method: "POST",
+                credentials: "include",
                 body: formData
             });
             if (response.url) {
