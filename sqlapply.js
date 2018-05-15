@@ -11,8 +11,8 @@ exports.initDb = async function (directory, dbConfig) {
     let entries = await fs.readdirAsync(directory);
     let filtered = entries.filter(entry => !entry.endsWith("~"));
     
-    let client = new Client(dbConfig)
-    await client.connect()
+    let client = new Client(dbConfig);
+    await client.connect();
 
     await filtered.forEachAsync(async entry => {
         let file = await fs.readFileAsync(directory + "/" + entry);

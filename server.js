@@ -180,12 +180,12 @@ exports.boot = function (port, options) {
 
                 // Handle the proxy
                 app.all(new RegExp("/nichat/welcome"), function (req, response) {
-                    console.log("cookies received", req.cookies);
+                    // console.log("cookies received", req.cookies);
                     proxyFunc(req, response);
                 });
 
                 app.all(new RegExp("/nichat/people"), function (req, response) {
-                    console.log("cookies received", req.cookies);
+                    // console.log("cookies received", req.cookies);
                     proxyFunc(req, response);
                 });
             }

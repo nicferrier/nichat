@@ -14,11 +14,22 @@ const http = require("http");
 const db = require("./sqlapply.js");
 const bcrypt = require("bcrypt");
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 
 const adjectives = require("./adjectives.js");
 
 const app = express();
+const oneDaySecs = 24 * 60 * 60 * 1000;
 
+
+let dbConfig = {
+    user: 'nichat',
+    database: 'nichat',
+    host: 'localhost',
+    port: 5434
+};
+ 
 // multer storage function, reusable for different image stores
 function storeImage (req, file, callback) {
     crypto.pseudoRandomBytes(16, function(err, raw) {
@@ -95,14 +106,14 @@ async function getAccountPhoto(email, response) {
     try {
         let result = await dbClient.query(sql, [email]);
         let {rows} = result;
-        console.log("rows", rows);
+        // console.log("rows", rows);
         if (rows.length < 1) {
             response.sendStatus(404);
         }
         else {
             let [{data}] = rows;
             let binary = Buffer.from(data, 'base64');
-            response.set("Content-Type", "image/png");
+            response.set("Content-Type", "image/jpg");
             response.send(binary);
         }
     }
@@ -123,6 +134,16 @@ exports.boot = async function (options) {
     app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
+
+    app.use(session({
+        store: new pgSession({
+            conObject: dbConfig
+        }),
+        secret: "destinedforgreatness",
+        resave: false,
+        cookie: { maxAge: 30 * oneDaySecs }
+    }));
+
 
     // Just used to make names up - just because it's easier to test
     app.get("/nichat/welcome/name", function (req, response) {
@@ -172,7 +193,9 @@ exports.boot = async function (options) {
                      // FIXME: check register first
                      saveUser(email, password, photoFile);
                  }
-                 response.cookie("nichat", email + ":" + password);
+                 // response.cookie("nichat", email + ":" + password);
+                 req.session.user = email;
+                 req.session.photo = photoFile;
                  response.redirect("/nichat/");
              });
     
@@ -190,8 +213,14 @@ exports.boot = async function (options) {
     });
 
     app.get("/nichat/people/_/photo", function (req, response) {
-        console.log("cookie", req.cookies);
-        response.sendStatus(204);
+        if (req.session["user"] === undefined) {
+            console.log("no user in the session");
+            response.sendStatus(404);
+            return;
+        }
+        let user = req.session.user;
+        console.log("retrieving photo for", user);
+        getAccountPhoto(user, response);
     });
 
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)/photo", function (req, response) {
@@ -209,12 +238,6 @@ exports.boot = async function (options) {
     let listener = app.listen(0, "localhost", async function () {
         // bootDocker();
         // Start the db
-        let dbConfig = {
-            user: 'nichat',
-            database: 'nichat',
-            host: 'localhost',
-            port: 5434
-        };
         try {
             dbClient = await db.initDb(__dirname + "/sql-people", dbConfig);
         }
