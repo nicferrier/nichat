@@ -58,6 +58,10 @@ function bCompare (value, hash) {
     });
 };
 
+function rnd (max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
 
 let pgChild = undefined;
 let dbClient = undefined;
@@ -122,8 +126,20 @@ async function getAccountPhoto(email, response) {
     }
 }
 
-function rnd (max) {
-    return Math.floor(Math.random() * Math.floor(max));
+async function listPeople() {
+    try {
+        let peopleResult = await dbClient.query(
+            "select u.id, u.name, p.data "
+                + "from chat_user u join user_photo p on u.id=p.user_id "
+                + "where u.enabled = true;"
+        );
+        
+        let {rows} = peopleResult;
+        return rows;
+    }
+    catch (e) {
+        console.log("can't list users", e);
+    }
 }
 
 exports.boot = async function (options) {
@@ -199,17 +215,9 @@ exports.boot = async function (options) {
                  response.redirect("/nichat/");
              });
     
-    app.get("/nichat/people$", function (req, response) {
-        // Filter out the unnnecessary keys
-        /*
-        let usersJson = {};
-        Object.keys(users).forEach(email => {
-            let { photo } = users[email];
-            usersJson[email] = { photo: photo };l
-        });
-        response.json(usersJson);
-        */
-        response.sendStatus(204);
+    app.get("/nichat/people$", async function (req, response) {
+        let users = await listPeople();
+        response.json(users);
     });
 
     app.get("/nichat/people/_/photo", function (req, response) {
