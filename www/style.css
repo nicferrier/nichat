@@ -27,11 +27,17 @@ body {
     background-color: #E0E0E0;
     width: 20%;
     height: 100%;
+    margin-right: 0px;
+    padding-right: 0px;
+    overflow-y: auto;
 }
 
 .indexctrl {
     height: 45px;
     margin: 5px;
+    margin-right: 0px;
+    paddong-right: 0px;
+    height: 100%;
     margin-bottom: 10px;
     border-bottom: solid 1px #DADADA;
 }
@@ -51,9 +57,36 @@ body {
 .index a img {
     height: 50px;
     width: 50px;
+    object-fit: cover;
     float: left;
     padding-right: 10px;
     border-bottom: solid 1px #E9E9E9;
+}
+
+#peoplelist {
+    margin: 5px;
+    margin-right: 0px;
+    padding-right: 0px;
+    padding: 0;
+    height: 100%;
+}
+
+#peoplelist li {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    list-style-type: none;
+    width: 90%;
+    font-size: 1.8vh;
+    overflow: hidden;
+}
+
+#peoplelist li img {
+    margin-right: 5px;
+    height: 30px;
+    width: 30px;
+    object-fit: cover;
+    border: solid 1px #E9E9E9;
 }
 
 body article {

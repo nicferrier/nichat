@@ -233,6 +233,33 @@ async function getChats() {
     return myChats;
 }
 
+function getPeopleListUrl() {
+    let url = document.location.origin
+        + "/"
+        + document.location.pathname.split("/")[1]
+        + "/people";
+    return url;
+}
+
+// Fill in all the chat people
+async function getChatPeople() {
+    let response = await fetch(getPeopleListUrl());
+    let chatPeople = await response.json();
+    let list = document.querySelector("#peoplelist");
+    chatPeople.forEach(person => {
+        let { id, name, data } = person;
+        let li = document.createElement("li");
+        let img = document.createElement("img");
+        img.setAttribute("src", "data:image/png;base64," + data);
+        li.appendChild(img);
+        let text = document.createElement("span");
+        text.textContent = name;
+        li.appendChild(text);
+        list.appendChild(li);
+    });
+    list.classList.toggle("hidden");
+}
+
 function getAssetsUrl(asset) {
     let url = document.location.origin
         + "/"
@@ -310,6 +337,7 @@ function clickToFullView(target) {
 }
 
 async function init (commsWorker) {
+    await getChatPeople();
     let chats = await getChats();
 
     window.onpopstate = function (evt) {

@@ -28,8 +28,9 @@ window.addEventListener("load", evt => {
             video.pause();
         });
 
-    document.querySelector("body button[accesskey='s']")
+    document.querySelector("button[accesskey='v']")
         .addEventListener("click", evt => {
+            evt.preventDefault();
             document.querySelector("video").classList.toggle("hidden");
             document.querySelector("div#imgSelect").classList.toggle("hidden");
             if(navigator.mediaDevices
