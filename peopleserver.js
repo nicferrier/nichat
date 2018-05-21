@@ -88,7 +88,7 @@ async function checkPassword(email, password) {
 async function saveUser(email, password, photoFile) {
     try {
         let encPassword = await bcHash(password, 10);
-        let photoFileData = await fs.readFileAsync(photoFile.path, "base64");
+        let photoFileData = await fs.promises.readFile(photoFile.path, "base64");
         await dbClient.query("select make_user($1, $2, $3, $4);", [
             email,
             email,
@@ -102,11 +102,8 @@ async function saveUser(email, password, photoFile) {
 }
 
 async function getAccountPhoto(email, response) {
-    let sql = "select data "
-        + "from chat_user u, user_photo p "
-        + "where p.user_id = u.id "
-        + "and u.enabled=true "
-        + "and u.email=$1";
+    let fileName = path.join(__dirname, "app-sql", "account-photo.sql");
+    let sql = await fs.promises.readFile(fileName);
     try {
         let result = await dbClient.query(sql, [email]);
         let {rows} = result;
@@ -128,12 +125,9 @@ async function getAccountPhoto(email, response) {
 
 async function listPeople() {
     try {
-        let peopleResult = await dbClient.query(
-            "select u.id, u.name, p.data "
-                + "from chat_user u join user_photo p on u.id=p.user_id "
-                + "where u.enabled = true;"
-        );
-        
+        let fileName = path.join(__dirname, "app-sql", "people-list.sql");
+        let sql = await fs.promises.readFile(fileName);
+        let peopleResult = await dbClient.query(sql);
         let {rows} = peopleResult;
         return rows;
     }
