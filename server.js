@@ -93,6 +93,13 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
+    app.post("/nichat/chat/", function (req,response) {
+        let toInvite = req.query;
+        let body = req.body;
+        console.log("toInvite", toInvite, "body", body);
+        response.sendStatus(204);
+    });
+
     app.get("/nichat/chat/:collection([A-Za-z0-9-]+)",
             async function (req, response) {
                 let { collection } = req.params;

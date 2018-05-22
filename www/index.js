@@ -219,7 +219,7 @@ async function getChats() {
         img.src = photos[0];
         section.appendChild(img);
         let element = document.importNode(section, true);
-        element.addEventListener("click", function (evt) {
+        element.addEventListener("click", evt => {
             evt.preventDefault();
             evt.stopPropagation();
             let chatName = evt.currentTarget.getAttribute("data-chatname");
@@ -239,25 +239,6 @@ function getPeopleListUrl() {
         + document.location.pathname.split("/")[1]
         + "/people";
     return url;
-}
-
-// Fill in all the chat people
-async function getChatPeople() {
-    let response = await fetch(getPeopleListUrl());
-    let chatPeople = await response.json();
-    let list = document.querySelector("#peoplelist");
-    chatPeople.forEach(person => {
-        let { id, name, data } = person;
-        let li = document.createElement("li");
-        let img = document.createElement("img");
-        img.setAttribute("src", "data:image/png;base64," + data);
-        li.appendChild(img);
-        let text = document.createElement("span");
-        text.textContent = name;
-        li.appendChild(text);
-        list.appendChild(li);
-    });
-    list.classList.toggle("hidden");
 }
 
 function getAssetsUrl(asset) {
@@ -336,13 +317,66 @@ function clickToFullView(target) {
     }
 }
 
+// Fill in all the chat people
+async function getChatPeople(pattern) {
+    console.log("getChatPeople pattern", pattern);
+    let list = document.querySelector("#peoplelist");
+    list.classList.remove("hidden");
+
+    let patternFilter = pattern == "" ? person => true
+        : person => person.name.startsWith(pattern);
+    let response = await fetch(getPeopleListUrl());
+    let chatPeople = await response.json();
+    Array.from(list.children).forEach(node => {
+        list.removeChild(node)
+    });
+
+    chatPeople
+        .filter(patternFilter)
+        .forEach(person => {
+            let { id, name, } = person;
+            let li = document.createElement("li");
+            let a = document.createElement("a");
+
+            // make an id for the chat?
+            a.setAttribute("href", "/nichat/chat/?people=" + name);
+            let img = document.createElement("img");
+            img.setAttribute("src", "/nichat/people/" + name + "/photo");
+            a.appendChild(img);
+
+            a.addEventListener("click", async evt => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                // FIXME - clear up this to send POST data not query
+                let response = await fetch(evt.target.getAttribute("href"), {
+                    method: "POST"
+                });
+                console.log("response", response);
+            });
+
+            let text = document.createElement("span");
+            text.textContent = name;
+            a.appendChild(text);
+
+            li.appendChild(a);
+            list.appendChild(li);
+        });
+}
+
 async function init (commsWorker) {
-    await getChatPeople();
     let chats = await getChats();
 
     window.onpopstate = function (evt) {
         console.log("popstate", evt);
     };
+
+    let search = document.querySelector("input[name=search]");
+    search.addEventListener("focusin", async evt => {
+        await getChatPeople(search.value);
+    });
+    search.addEventListener("keyup", async evt => {
+        await getChatPeople(search.value);
+    });
 
     document.querySelector("button[name=faces]")
         .addEventListener("click", evt => {

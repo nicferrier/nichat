@@ -221,8 +221,9 @@ exports.boot = async function (options) {
             return;
         }
         let user = req.session.user;
-        console.log("retrieving photo for", user);
-        getAccountPhoto(user, response);
+        response.redirect(301, "/nichat/people/" + user + "/photo");
+        //console.log("retrieving photo for", user);
+        //getAccountPhoto(user, response);
     });
 
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)/photo", function (req, response) {

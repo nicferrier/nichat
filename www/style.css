@@ -42,7 +42,7 @@ body {
     border-bottom: solid 1px #DADADA;
 }
 
-.indexctrl input[type=text] {
+.indexctrl form input[type=text] {
     width: 80%;
 }
 
@@ -65,28 +65,45 @@ body {
 
 #peoplelist {
     margin: 5px;
+    margin-left: 2px;
+    padding-left: 0px;
     margin-right: 0px;
     padding-right: 0px;
     padding: 0;
     height: 100%;
 }
 
-#peoplelist li {
+#peoplelist li a {
     display: flex;
+    margin-left: 0px;
+    margin-right: 0px;
     flex-direction: row;
     align-items: center;
     list-style-type: none;
-    width: 90%;
+    width: 95%;
     font-size: 1.8vh;
     overflow: hidden;
 }
 
-#peoplelist li img {
+#peoplelist li a:link {
+    color: black;
+}
+
+#peoplelist li a:visited {
+    color: black;
+}
+
+#peoplelist li a img {
+    margin-left: 0;
     margin-right: 5px;
     height: 30px;
     width: 30px;
     object-fit: cover;
     border: solid 1px #E9E9E9;
+}
+
+#peoplelist li:focus {
+    background-color: blue;
 }
 
 body article {
