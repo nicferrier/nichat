@@ -16,12 +16,21 @@ const SSE = require("sse-node");
 const http = require("http");
 const proxy = require('express-http-proxy');
 const cookieParser = require('cookie-parser');
- 
+const db = require("./sqlapply.js");
+
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
 const app = express();
 
+let dbConfig = {
+    user: 'nichat',
+    database: 'chat',
+    host: 'localhost',
+    port: 5434
+};
+
+let dbClient = undefined;
 
 function eventToHappen(eventFn) {
     return new Promise((resolve, reject) => {
@@ -93,10 +102,15 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.post("/nichat/chat/", function (req,response) {
+    app.post("/nichat/chat/", async function (req,response) {
         let toInvite = req.query;
         let body = req.body;
         console.log("toInvite", toInvite, "body", body);
+        let result = await dbClient.query("insert into chat (id, members) "
+                                          + "values (nextval('chat_id'), $1)",
+                                          [JSON.stringify(toInvite)]);
+        let { rowCount } = result;
+        console.log("chat inserted count", rowCount);
         response.sendStatus(204);
     });
 
@@ -185,6 +199,10 @@ exports.boot = function (port, options) {
             reqBodyEncoding: null
         };
 
+        // Init the sql
+        dbClient = await db.initDb(__dirname + "/sql-chat", dbConfig);
+
+        // Start the peopleserver
         let nodeBin = process.argv[0];
         child = spawn(nodeBin, ["peopleserver.js"]);
         child.stderr.pipe(process.stderr);

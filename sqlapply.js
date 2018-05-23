@@ -32,16 +32,4 @@ exports.initDb = async function (directory, dbConfig) {
     return client;
 };
 
-async function init() {
-    let client = await exports.initDb(__dirname + "/sql-people", {
-        user: 'nichat',
-        database: 'nichat',
-        host: 'localhost',
-        port: 5432
-    });
-    await client.end()
-};
-
-//init();
-
-// end here
+// sqlapply.js ends here

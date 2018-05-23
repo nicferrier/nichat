@@ -363,7 +363,17 @@ async function getChatPeople(pattern) {
         });
 }
 
+async function getSessionUser () {
+    let response = await fetch("/nichat/people/_", {
+        credentials: "same-origin"
+    });
+    let nichatUser = response.headers.get("x-nichat-user");
+    document.querySelector(".control img").setAttribute("title", nichatUser);
+}
+
 async function init (commsWorker) {
+    getSessionUser();
+
     let chats = await getChats();
 
     window.onpopstate = function (evt) {

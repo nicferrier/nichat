@@ -151,7 +151,8 @@ exports.boot = async function (options) {
         }),
         secret: "destinedforgreatness",
         resave: false,
-        cookie: { maxAge: 30 * oneDaySecs }
+        cookie: { maxAge: 30 * oneDaySecs, httpOnly: false },
+        saveUninitialized: false
     }));
 
 
@@ -203,9 +204,10 @@ exports.boot = async function (options) {
                      // FIXME: check register first
                      saveUser(email, password, photoFile);
                  }
-                 // response.cookie("nichat", email + ":" + password);
+
+                 console.log("making a session with user", email);
                  req.session.user = email;
-                 req.session.photo = photoFile;
+                 req.session.save();
                  response.redirect("/nichat/");
              });
     
@@ -214,16 +216,27 @@ exports.boot = async function (options) {
         response.json(users);
     });
 
-    app.get("/nichat/people/_/photo", function (req, response) {
+    app.get("/nichat/people/_$", async function (req, response) {
         if (req.session["user"] === undefined) {
             console.log("no user in the session");
             response.sendStatus(404);
             return;
         }
         let user = req.session.user;
-        response.redirect(301, "/nichat/people/" + user + "/photo");
-        //console.log("retrieving photo for", user);
-        //getAccountPhoto(user, response);
+        console.log("session user", req.session.user);
+        response.set("x-nichat-user", req.session.user);
+        response.sendStatus(204);
+    });
+
+    app.get("/nichat/people/_/photo", function (req, response) {
+        console.log("session keys", Object.keys(req.session));
+        if (req.session["user"] === undefined) {
+            console.log("no user in the session");
+            response.sendStatus(404);
+            return;
+        }
+        let user = req.session.user;
+        response.redirect("/nichat/people/" + user + "/photo");
     });
 
     app.get("/nichat/people/:user([@A-Za-z0-9.-]+)/photo", function (req, response) {
