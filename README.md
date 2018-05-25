@@ -34,6 +34,18 @@ Emoticons came from [here](https://unicode.org/emoji/charts/emoji-ordering.html)
 
 people and chats
 
+## auth
+
+authenticate to people
+but we need your userid in chat
+
+one time password generation
+
+stick it on the session
+
+if chat authenticates to people with it then give it something
+
+
 ## people 
 
 * you register and authenticate - maybe this is proxied

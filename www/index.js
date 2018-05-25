@@ -2,9 +2,11 @@
 
 import hton from "./hton.js";
 
-const me = "nicferrier@localhost";
-var chats = {};
-var state = {};
+const config = {
+    me: "",
+    chats: {},
+    state: {}
+};
 
 Array.prototype.forEachAsync = async function (fn) {
     for (let t of this) { await fn(t) }
@@ -76,7 +78,7 @@ async function displayMessage(msgTime, text, toSpace, from) {
     let div = document.createElement("div");
     div.setAttribute("data-datetime", msgTime.valueOf());
     div.setAttribute("data-datetime-string", msgTime.toString());
-    div.classList.add(from == me ? "me":"other");
+    div.classList.add(from == config.me ? "me":"other");
     let img = document.createElement("img");
     let photoUrl = await getUserPhoto(from);
     img.src = photoUrl;
@@ -102,7 +104,7 @@ async function displayMessage(msgTime, text, toSpace, from) {
 
     hton.hton2Dom(text, span);
     //span.textContent = text;
-    if (from == me) {
+    if (from == config.me) {
         div.appendChild(img);
         div.appendChild(chatDiv);
     }
@@ -128,7 +130,7 @@ async function queueMessage(msgTime, text, toSpace, from, workerPort) {
 
 function displayChat(json) {
     let { url, name, messages } = json;
-    history.pushState(state, name, url);
+    history.pushState(config.state, name, url);
     document.querySelector(".chat-header")
         .parentNode
         .setAttribute("data-url", url);
@@ -192,7 +194,7 @@ async function getAndDisplayChat(url) {
 async function getChats() {
     let response = await fetch(getChatListUrl());
     let myChats = await response.json();
-    chats = myChats;
+    config.chats = myChats;
     let myChatNames = Object.keys(myChats);
     console.log("getChats myChatNames", myChatNames);
     let chatsIndex = document.querySelector("section.index");
@@ -200,14 +202,14 @@ async function getChats() {
     myChatNames.forEachAsync(async function (chat, i) {
         // console.log("chat", i, chat);
         let spaceName = myChats[chat].spaceName;
-        chats[chat].loaded = false;
+        config.chats[chat].loaded = false;
         let spaceNameUrl = getSpaceNameUrl(spaceName);
         console.log("getChats getChat", spaceName,
                     "url", spaceNameUrl,
                     "tabindex", i);
         let json = await getChat(spaceNameUrl);
         let members = json.members;
-        let membersNotMe = members.filter(member => member != me);
+        let membersNotMe = members.filter(member => member != config.me);
         let photos = await Promise.all(membersNotMe.map(getUserPhoto))
         // console.log("members", photos);
         let section = document.createElement("a");
@@ -339,7 +341,8 @@ async function getChatPeople(pattern) {
             let a = document.createElement("a");
 
             // make an id for the chat?
-            a.setAttribute("href", "/nichat/chat/?people=" + name);
+            let people = name + "," + config.me;
+            a.setAttribute("href", "/nichat/chat/?people=" + people);
             let img = document.createElement("img");
             img.setAttribute("src", "/nichat/people/" + name + "/photo");
             a.appendChild(img);
@@ -348,7 +351,10 @@ async function getChatPeople(pattern) {
                 evt.preventDefault();
                 evt.stopPropagation();
                 // FIXME - clear up this to send POST data not query
-                let response = await fetch(evt.target.getAttribute("href"), {
+
+                let url = evt.target.getAttribute("href");
+                console.log("chatPeople url", url);
+                let response = await fetch(url, {
                     method: "POST"
                 });
                 console.log("response", response);
@@ -364,15 +370,26 @@ async function getChatPeople(pattern) {
 }
 
 async function getSessionUser () {
-    let response = await fetch("/nichat/people/_", {
-        credentials: "same-origin"
+    let url = "/nichat/welcome/chat-authenticate";
+    let response = await fetch(url, {
+        credentials: "same-origin",
+        method: "POST"
     });
-    let nichatUser = response.headers.get("x-nichat-user");
+    let chatAuth = response.headers.get("x-nichat-chatauth");
+    let authResponse = await fetch("/nichat/get-chat-user", {
+        credentials: "same-origin",
+        method: "POST",
+        headers: {
+            "x-nichat-chatauth": chatAuth,
+        }
+    });
+    let nichatUser = authResponse.headers.get("x-nichat-chatauth");
     document.querySelector(".control img").setAttribute("title", nichatUser);
+    return nichatUser;
 }
 
 async function init (commsWorker) {
-    getSessionUser();
+    config.me = await getSessionUser();
 
     let chats = await getChats();
 

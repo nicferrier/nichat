@@ -1,7 +1,7 @@
 // nichat server
 // Copyright (C) 2018 by Nic Ferrier
 
-const fs = require('fs');
+const fs = require('./fsasync.js');
 const path = require('path');
 const { URL } = require('url');
 const crypto = require("crypto");
@@ -17,11 +17,22 @@ const http = require("http");
 const proxy = require('express-http-proxy');
 const cookieParser = require('cookie-parser');
 const db = require("./sqlapply.js");
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const fetch = require("node-fetch");
 
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
 const app = express();
+
+const oneDaySecs = 1000 * 60 * 60 * 24;
+
+function eventToHappen(eventFn) {
+    return new Promise((resolve, reject) => {
+        eventFn(resolve);
+    });
+}
 
 let dbConfig = {
     user: 'nichat',
@@ -31,11 +42,31 @@ let dbConfig = {
 };
 
 let dbClient = undefined;
+let peopleProxyUrl = undefined;
 
-function eventToHappen(eventFn) {
-    return new Promise((resolve, reject) => {
-        eventFn(resolve);
-    });
+async function makeChat(inviteesStruct) {
+    let {people} = inviteesStruct;
+    let inviteeList = people.split(",");
+    if (inviteeList.length < 2) {
+        throw new Error("invitee list too small");
+    }
+    let fileName = path.join(__dirname, "app-sql-chat", "make-chat.sql");
+    let sql = await fs.promises.readFile(fileName);
+    let result = await dbClient.query(sql, [JSON.stringify(inviteeList)]);
+    let { rowCount, rows } = result;
+    if (rowCount < 1) {
+        throw new Error("make chat returned too few rows");
+    }
+    let [{ name } ] = rows;
+    return name;
+}
+
+async function getChats(userFor) {
+    let fileName = path.join(__dirname, "app-sql-chat", "get-chats.sql");
+    let sql = await fs.promises.readFile(fileName);
+    let result = await dbClient.query(sql, [JSON.stringify(userFor)]);
+    let { rowCount, rows } = result;
+    console.log("rows, rowcount", rows, rowCount);
 }
 
 function getRemoteAddr(request) {
@@ -67,6 +98,17 @@ exports.boot = function (port, options) {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
     app.use("/nichat", express.static(rootDir));
+
+    app.use(session({
+        store: new pgSession({
+            conObject: dbConfig
+        }),
+        secret: "destinedforgreatness",
+        resave: false,
+        name: "chat.id",
+        cookie: { maxAge: 30 * oneDaySecs, httpOnly: false },
+        saveUninitialized: false
+    }));
     
     app.get("/", function (req, response) {
         console.log("redirecting to routed path /nichat");
@@ -74,9 +116,33 @@ exports.boot = function (port, options) {
     });
 
 
-    // Chats
+    // Chat data sync between people
 
-    app.get("/nichat/chats/", function (req, response) {
+    app.post("/nichat/get-chat-user", async function (req, response) {
+        if (req.session.user == undefined) {
+            let auth = req.get("x-nichat-chatauth");
+            let path = "/nichat/welcome/auth-chat";
+            let url = peopleProxyUrl + path;
+            let authResponse = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "x-nichat-chatauth": auth
+                }
+            });
+            // console.log("chat auth response", authResponse.status);
+            let username = authResponse.headers.get("x-nichat-user");
+            // console.log("chat auth username", username);
+            req.session.user = username;
+        }
+        response.sendStatus(204);
+    });
+
+
+    // Chat stuff
+    
+    app.get("/nichat/chats/", async function (req, response) {
+        //console.log("headers", req.headers);
+        //let result = await getChats(req.session.user);
         /*
         let chats = {
             "raj": { "spaceName": "rajandnic" },
@@ -106,12 +172,9 @@ exports.boot = function (port, options) {
         let toInvite = req.query;
         let body = req.body;
         console.log("toInvite", toInvite, "body", body);
-        let result = await dbClient.query("insert into chat (id, members) "
-                                          + "values (nextval('chat_id'), $1)",
-                                          [JSON.stringify(toInvite)]);
-        let { rowCount } = result;
-        console.log("chat inserted count", rowCount);
-        response.sendStatus(204);
+        let chatName = await makeChat(toInvite);
+        response.set("location", chatName);
+        response.sendStatus(201);
     });
 
     app.get("/nichat/chat/:collection([A-Za-z0-9-]+)",
@@ -217,12 +280,13 @@ exports.boot = function (port, options) {
         let [_, portStr] = result;
         let port = parseInt(portStr); // set port
 
-        let proxyUrl = "http://localhost:" + port;
-        let proxyFunc = proxy(proxyUrl, proxyOptions);
-        console.log("url to talk to proxy", proxyUrl);
+        peopleProxyUrl = "http://localhost:" + port;
+        let proxyFunc = proxy(peopleProxyUrl, proxyOptions);
+        console.log("url to talk to proxy", peopleProxyUrl);
         
         // Handle the proxy
         app.all(new RegExp("/nichat/welcome"), function (req, response) {
+            // console.log("proxy", req.url);
             // console.log("cookies received", req.cookies);
             proxyFunc(req, response);
         });

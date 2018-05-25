@@ -1,4 +1,4 @@
--- Session stuff taken from connect-pg-simple/table.sql
+-- Session stuff taken from connect-pg-simple/table.sql  -*- mode: sql -*-
 
 CREATE TABLE IF NOT EXISTS "session" (
   "sid" varchar NOT NULL COLLATE "default",

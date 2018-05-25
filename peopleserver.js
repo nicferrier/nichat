@@ -16,12 +16,12 @@ const bcrypt = require("bcrypt");
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-
 const adjectives = require("./adjectives.js");
 
 const app = express();
-const oneDaySecs = 24 * 60 * 60 * 1000;
 
+const oneDaySecs = 24 * 60 * 60 * 1000;
+const secret = "destinedforgreatness";
 
 let dbConfig = {
     user: 'nichat',
@@ -102,7 +102,7 @@ async function saveUser(email, password, photoFile) {
 }
 
 async function getAccountPhoto(email, response) {
-    let fileName = path.join(__dirname, "app-sql", "account-photo.sql");
+    let fileName = path.join(__dirname, "app-sql-people", "account-photo.sql");
     let sql = await fs.promises.readFile(fileName);
     try {
         let result = await dbClient.query(sql, [email]);
@@ -125,7 +125,7 @@ async function getAccountPhoto(email, response) {
 
 async function listPeople() {
     try {
-        let fileName = path.join(__dirname, "app-sql", "people-list.sql");
+        let fileName = path.join(__dirname, "app-sql-people", "people-list.sql");
         let sql = await fs.promises.readFile(fileName);
         let peopleResult = await dbClient.query(sql);
         let {rows} = peopleResult;
@@ -133,6 +133,21 @@ async function listPeople() {
     }
     catch (e) {
         console.log("can't list users", e);
+    }
+}
+
+async function findAuthToken(authToken) {
+    try {
+        console.log("searching for authToken");
+        let fileName = path.join(__dirname, "app-sql-people", "onetime-auth.sql");
+        let sql = await fs.promises.readFile(fileName);
+        let userResult = await dbClient.query(sql, [authToken]);
+        let {rows} = userResult;
+        console.log("findAuthToken rows", rows);
+        return rows[0];
+    }
+    catch (e) {
+        console.log("can't find auth token", e);
     }
 }
 
@@ -149,7 +164,7 @@ exports.boot = async function (options) {
         store: new pgSession({
             conObject: dbConfig
         }),
-        secret: "destinedforgreatness",
+        secret: secret,
         resave: false,
         cookie: { maxAge: 30 * oneDaySecs, httpOnly: false },
         saveUninitialized: false
@@ -168,6 +183,33 @@ exports.boot = async function (options) {
         let path = process.cwd() + "/www/welcome.html";
         response.sendFile(path);
     });
+
+    app.post("/nichat/welcome/chat-authenticate", async function (req, response) {
+        try {
+            if (req.session.user !== undefined) {
+                // console.log("chat authenticate");
+                let word =  secret + (new Date().toISOString());
+                req.session.onetime = await bcHash(word, 10);
+                req.session.save();
+                response.set("x-nichat-chatauth", req.session.onetime);
+            }
+        }
+        catch (e) {
+            // used for control flow of req.session.user throwing
+        }
+        response.sendStatus(204);
+    });
+
+    app.post("/nichat/welcome/auth-chat", async function (req, response) {
+        let onetime = req.get("x-nichat-chatauth");
+        let userResult = await findAuthToken(onetime);
+        if (userResult != null && userResult !== undefined) {
+            // console.log("auth-chat found user", userResult.user);
+            response.set("x-nichat-user", userResult.user);
+        }
+        response.sendStatus(204);
+    });
+
 
     app.get("/", function (req, response) {
         console.log("root!");
