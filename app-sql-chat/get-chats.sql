@@ -1,6 +1,6 @@
 -- get the chats -*- mode: sql -*-
 
-select "name"
+select name, members
 from chat
 where members::jsonb ? $1;
 

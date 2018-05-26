@@ -62,11 +62,22 @@ async function makeChat(inviteesStruct) {
 }
 
 async function getChats(userFor) {
+    console.log("getChats", userFor);
     let fileName = path.join(__dirname, "app-sql-chat", "get-chats.sql");
     let sql = await fs.promises.readFile(fileName);
-    let result = await dbClient.query(sql, [JSON.stringify(userFor)]);
+    let result = await dbClient.query(sql, [userFor]);
     let { rowCount, rows } = result;
-    console.log("rows, rowcount", rows, rowCount);
+    if (rowCount < 1) {
+        return []
+    }
+    else {
+        return rows.map(row => {
+            return {
+                "spaceName": row.name,
+                "members": rows.members
+            };
+        });
+    }
 }
 
 function getRemoteAddr(request) {
@@ -118,7 +129,18 @@ exports.boot = function (port, options) {
 
     // Chat data sync between people
 
-    app.post("/nichat/get-chat-user", async function (req, response) {
+    app.get("/nichat/chat-user", function (req, response) {
+        console.log("chat-user", req.session.user);
+        if (req.session.user == undefined) {
+            response.sendStatus(404);
+        }
+        else {
+            response.set("x-nichat-user", req.session.user);
+            response.sendStatus(204);
+        }
+    });
+
+    app.post("/nichat/chat-user", async function (req, response) {
         if (req.session.user == undefined) {
             let auth = req.get("x-nichat-chatauth");
             let path = "/nichat/welcome/auth-chat";
@@ -134,6 +156,9 @@ exports.boot = function (port, options) {
             // console.log("chat auth username", username);
             req.session.user = username;
         }
+        else {
+            response.set("x-nichat-user", req.session.user);
+        }
         response.sendStatus(204);
     });
 
@@ -141,15 +166,21 @@ exports.boot = function (port, options) {
     // Chat stuff
     
     app.get("/nichat/chats/", async function (req, response) {
-        //console.log("headers", req.headers);
-        //let result = await getChats(req.session.user);
-        /*
-        let chats = {
-            "raj": { "spaceName": "rajandnic" },
-            "audrey": { "spaceName": "audreyandnic" }
-            };*/
-        let chats = {};
-        response.json(chats);
+        console.log("get chats", req.session.user);
+        if (req.session.user !== undefined) {
+            let result = await getChats(req.session.user);
+            /*
+              let chats = {
+              "raj": { "spaceName": "rajandnic" },
+              "audrey": { "spaceName": "audreyandnic" }
+              };*/
+            //let chats = {};
+            //response.json(chats);
+            response.json(result);
+        }
+        else {
+            response.json({});
+        }
     });
 
     // Handle the distribution of chats
@@ -173,6 +204,7 @@ exports.boot = function (port, options) {
         let body = req.body;
         console.log("toInvite", toInvite, "body", body);
         let chatName = await makeChat(toInvite);
+        console.log("chat chatName", chatName);
         response.set("location", chatName);
         response.sendStatus(201);
     });

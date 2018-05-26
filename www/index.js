@@ -192,7 +192,7 @@ async function getAndDisplayChat(url) {
 }
 
 async function getChats() {
-    let response = await fetch(getChatListUrl());
+    let response = await fetch(getChatListUrl(), { credentials: "same-origin" });
     let myChats = await response.json();
     config.chats = myChats;
     let myChatNames = Object.keys(myChats);
@@ -357,7 +357,8 @@ async function getChatPeople(pattern) {
                 let response = await fetch(url, {
                     method: "POST"
                 });
-                console.log("response", response);
+                let chatLocation = response.headers.get("location");
+                console.log("response", response, chatLocation);
             });
 
             let text = document.createElement("span");
@@ -370,20 +371,25 @@ async function getChatPeople(pattern) {
 }
 
 async function getSessionUser () {
-    let url = "/nichat/welcome/chat-authenticate";
-    let response = await fetch(url, {
-        credentials: "same-origin",
-        method: "POST"
-    });
-    let chatAuth = response.headers.get("x-nichat-chatauth");
-    let authResponse = await fetch("/nichat/get-chat-user", {
-        credentials: "same-origin",
-        method: "POST",
-        headers: {
-            "x-nichat-chatauth": chatAuth,
-        }
-    });
-    let nichatUser = authResponse.headers.get("x-nichat-chatauth");
+    let chatUserUrl = "/nichat/chat-user"
+    let chatUserResponse = await fetch(chatUserUrl, { credentials: "same-origin"});
+    console.log("chat user response", chatUserResponse.status);
+    if (chatUserResponse.status == 404) {
+        let authGenerateUrl = "/nichat/welcome/chat-authenticate";
+        let authGenerateResponse = await fetch(authGenerateUrl, {
+            credentials: "same-origin",
+            method: "POST"
+        });
+        let chatAuth = authGenerateResponse.headers.get("x-nichat-chatauth");
+        chatUserResponse = await fetch(chatUserUrl, {
+            credentials: "same-origin",
+            method: "POST",
+            headers: {
+                "x-nichat-chatauth": chatAuth,
+            }
+        });
+    }
+    let nichatUser = chatUserResponse.headers.get("x-nichat-user");
     document.querySelector(".control img").setAttribute("title", nichatUser);
     return nichatUser;
 }
