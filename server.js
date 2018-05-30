@@ -24,9 +24,9 @@ const fetch = require("node-fetch");
 const eliza = require("./eliza");
 const chatstore = require("./chatstore.js");
 
+const oneDaySecs = 1000 * 60 * 60 * 24;
 const app = express();
 
-const oneDaySecs = 1000 * 60 * 60 * 24;
 
 function eventToHappen(eventFn) {
     return new Promise((resolve, reject) => {
@@ -43,42 +43,6 @@ let dbConfig = {
 
 let dbClient = undefined;
 let peopleProxyUrl = undefined;
-
-async function makeChat(inviteesStruct) {
-    let {people} = inviteesStruct;
-    let inviteeList = people.split(",");
-    if (inviteeList.length < 2) {
-        throw new Error("invitee list too small");
-    }
-    let fileName = path.join(__dirname, "app-sql-chat", "make-chat.sql");
-    let sql = await fs.promises.readFile(fileName);
-    let result = await dbClient.query(sql, [JSON.stringify(inviteeList)]);
-    let { rowCount, rows } = result;
-    if (rowCount < 1) {
-        throw new Error("make chat returned too few rows");
-    }
-    let [{ name } ] = rows;
-    return name;
-}
-
-async function getChats(userFor) {
-    console.log("getChats", userFor);
-    let fileName = path.join(__dirname, "app-sql-chat", "get-chats.sql");
-    let sql = await fs.promises.readFile(fileName);
-    let result = await dbClient.query(sql, [userFor]);
-    let { rowCount, rows } = result;
-    if (rowCount < 1) {
-        return []
-    }
-    else {
-        return rows.map(row => {
-            return {
-                "spaceName": row.name,
-                "members": rows.members
-            };
-        });
-    }
-}
 
 function getRemoteAddr(request) {
     let ip = request.headers["x-forwarded-for"]
@@ -104,6 +68,7 @@ exports.boot = function (port, options) {
     let opts = options != undefined ? options : {};
     let rootDir = opts.rootDir != undefined ? opts.rootDir : __dirname + "/www";
     let jsFile = opts.jsFile != undefined ? opts.jsFile : "/index.js";
+    let chatAPI = null;
 
     app.use(cookieParser());
     app.use(bodyParser.json());
@@ -127,7 +92,7 @@ exports.boot = function (port, options) {
     });
 
 
-    // Chat data sync between people
+    // Chat data sync between people service
 
     app.get("/nichat/chat-user", function (req, response) {
         console.log("chat-user", req.session.user);
@@ -168,14 +133,7 @@ exports.boot = function (port, options) {
     app.get("/nichat/chats/", async function (req, response) {
         console.log("get chats", req.session.user);
         if (req.session.user !== undefined) {
-            let result = await getChats(req.session.user);
-            /*
-              let chats = {
-              "raj": { "spaceName": "rajandnic" },
-              "audrey": { "spaceName": "audreyandnic" }
-              };*/
-            //let chats = {};
-            //response.json(chats);
+            let result = await chatAPI.getChats(req.session.user);
             response.json(result);
         }
         else {
@@ -203,7 +161,7 @@ exports.boot = function (port, options) {
         let toInvite = req.query;
         let body = req.body;
         console.log("toInvite", toInvite, "body", body);
-        let chatName = await makeChat(toInvite);
+        let chatName = await chatAPI.makeChat(toInvite);
         console.log("chat chatName", chatName);
         response.set("location", chatName);
         response.sendStatus(201);
@@ -212,10 +170,12 @@ exports.boot = function (port, options) {
     app.get("/nichat/chat/:collection([A-Za-z0-9-]+)",
             async function (req, response) {
                 let { collection } = req.params;
+                console.log("chat collection", collection);
+
                 let { json } = req.query;
                 if (json == "1") {
                     response.status(200);
-                    let chatJson = await chatstore.getChat(collection);
+                    let chatJson = await chatAPI.getChat(collection);
                     response.json(chatJson)
                 }
                 else {
@@ -251,7 +211,7 @@ exports.boot = function (port, options) {
 
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+)",
              mpParser.fields([]),
-             function (req, response) {
+             async function (req, response) {
                  console.log("collection got message post", req.body, req.url);
                  let data = req.body;
                  let { from, to, text } = data;
@@ -260,7 +220,7 @@ exports.boot = function (port, options) {
                  let urlArray = req.url.split("/");
                  let chatName = urlArray[urlArray.length - 1];
                  console.log("chat post - name", chatName, "data", data);
-                 chatstore.saveChat(chatName, from, to, textJson, new Date());
+                 await chatstore.saveChat(chatName, from, to, textJson, new Date());
                  Object.keys(connections).forEach(connectionKey => {
                      let connection = connections[connectionKey];
                      data["type"] = "from";
@@ -296,6 +256,10 @@ exports.boot = function (port, options) {
 
         // Init the sql
         dbClient = await db.initDb(__dirname + "/sql-chat", dbConfig);
+
+        // Init the chat API
+        chatAPI = chatstore.makeAPI(dbClient);
+        
 
         // Start the peopleserver
         let nodeBin = process.argv[0];

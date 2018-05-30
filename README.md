@@ -22,15 +22,8 @@ node server.js
 Emoticons came from [here](https://unicode.org/emoji/charts/emoji-ordering.html)
 
 
-## Security
 
-* accept the register password in the clear
-* crypt the password with a random salt
-* save in the user_password table
-
-
-
-# separations
+# Bits of working out
 
 people and chats
 
@@ -63,5 +56,13 @@ if chat authenticates to people with it then give it something
  * merge the list of chats
 
 
-where does the binding between you and your chats get stored?
+## chat creation
+
+invite
+
+POST members -> chatservice -> makeChat - db insert
+
+
+
+
 

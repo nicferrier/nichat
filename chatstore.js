@@ -1,7 +1,10 @@
 // facilities for storing chats.
 
 const fs = require("./fsasync.js");
+const path = require("path");
 
+
+// File based interface
 
 exports.getChat = async function (name, outFunc) {
     let filename = "chat-store/" + name + ".json";
@@ -10,7 +13,6 @@ exports.getChat = async function (name, outFunc) {
     let json = JSON.parse(fileData);
     return json;
 };
-
 
 async function makeDirs (path) {
     let exists = await fs.promises.exists(path);
@@ -46,6 +48,80 @@ exports.saveChat = async function (chat, from, to, text, date) {
     json.messages.push(newMessage);
     await fs.promises.writeFile(filename, JSON.stringify(json, null, 2));
 }
+
+
+
+// SQL interface
+
+async function sqlFile(file) {
+    let fileName = path.join(__dirname, "app-sql-chat", file);
+    let sql = await fs.promises.readFile(fileName);
+    return sql;
+}
+
+exports.makeAPI = function (dbClient) {
+    return {
+        makeChat: async function(inviteesStruct) {
+            let {people} = inviteesStruct;
+            let inviteeList = people.split(",");
+            if (inviteeList.length < 2) {
+                throw new Error("invitee list too small");
+            }
+            
+            let sql = await sqlFile("make-chat.sql");
+            let result = await dbClient.query(sql, [JSON.stringify(inviteeList)]);
+            let { rowCount, rows } = result;
+            if (rowCount < 1) {
+                throw new Error("make chat returned too few rows");
+            }
+            let [{ name } ] = rows;
+            return name;
+        },
+
+        getChats: async function(userFor) {
+            console.log("getChats", userFor);
+            let sql = await sqlFile("get-chats.sql");
+            let result = await dbClient.query(sql, [userFor]);
+            let { rowCount, rows } = result;
+            if (rowCount < 1) {
+                return []
+            }
+            else {
+                return rows.map(row => {
+                    return {
+                        "spaceName": row.name,
+                        "members": rows.members
+                    };
+                });
+            }
+        },
+
+        getChat: async function(chatName) {
+            let sql = await sqlFile("get-chat.sql");
+            let result = await dbClient.query(sql, [chatName]);
+            let { rowCount, rows } = result;
+            if (rowCount < 1) {
+                return []
+            }
+            else {
+            }
+        },
+
+        // ignoring the date for now
+        saveChat: async function (chat, from, to, text, date) {
+            let sql = await sqlFile("add-message.sql");
+            let result = await dbClient.query(sql, [chat, from, to, text]);
+            let { rowCount, rows } = result;
+            if (rowCount < 1) {
+                return []
+            }
+            else {
+            }
+        }
+    };
+};
+
+
 
 function testcode () {
     chatstore.saveChat(

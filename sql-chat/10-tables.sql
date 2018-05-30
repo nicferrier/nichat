@@ -10,4 +10,19 @@ CREATE TABLE IF NOT EXISTS chat (
 
 SELECT create_or_replace_replication_trigger('chat');
 
+
+CREATE SEQUENCE IF NOT EXISTS message_id;
+
+
+CREATE TABLE IF NOT EXISTS message (
+"id" INTEGER,
+"chatname" TEXT,
+"from" TEXT,
+"to" TEXT,
+"when" TIMESTAMP WITH TIME ZONE,
+"msg" json
+);
+
+SELECT create_or_replace_replication_trigger('message');
+
 -- end
