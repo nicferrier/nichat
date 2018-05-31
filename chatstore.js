@@ -61,9 +61,7 @@ async function sqlFile(file) {
 
 exports.makeAPI = function (dbClient) {
     return {
-        makeChat: async function(inviteesStruct) {
-            let {people} = inviteesStruct;
-            let inviteeList = people.split(",");
+        makeChat: async function(inviteeList) {
             if (inviteeList.length < 2) {
                 throw new Error("invitee list too small");
             }
@@ -90,7 +88,7 @@ exports.makeAPI = function (dbClient) {
                 return rows.map(row => {
                     return {
                         "spaceName": row.name,
-                        "members": rows.members
+                        "members": row.members
                     };
                 });
             }

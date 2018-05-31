@@ -149,11 +149,13 @@ function displayChat(json) {
     contentEditable.setAttribute("contentEditable", "true");
     contentEditable.focus();
 
-    messages.forEachAsync(async function (message) {
-        let { datetime, text, from, to } = message;
-        // console.log("message", datetime, text);
-        await displayMessage(new Date(datetime), text, "unknown", from);
-    });
+    if (messages !== undefined) {
+        messages.forEachAsync(async function (message) {
+            let { datetime, text, from, to } = message;
+            // console.log("message", datetime, text);
+            await displayMessage(new Date(datetime), text, "unknown", from);
+        });
+    }
     return json;
 }
 
@@ -193,22 +195,21 @@ async function getAndDisplayChat(url) {
 
 async function getChats() {
     let response = await fetch(getChatListUrl(), { credentials: "same-origin" });
+    console.log("getChats response", response);
     let myChats = await response.json();
+    console.log("getChats response json", myChats);
     config.chats = myChats;
-    let myChatNames = Object.keys(myChats);
-    console.log("getChats myChatNames", myChatNames);
-    let chatsIndex = document.querySelector("section.index");
-    let length = myChatNames.length;
-    myChatNames.forEachAsync(async function (chat, i) {
+    let myChatList = Object.keys(myChats);
+    // console.log("getChats myChatNames", myChatList);
+    let chatsIndex = document.querySelector("section.index div.chats");
+    let length = myChatList.length;
+    myChatList.forEachAsync(async function (chat, i) {
         // console.log("chat", i, chat);
-        let spaceName = myChats[chat].spaceName;
+        let { spaceName, members } = myChats[chat];
         config.chats[chat].loaded = false;
         let spaceNameUrl = getSpaceNameUrl(spaceName);
-        console.log("getChats getChat", spaceName,
-                    "url", spaceNameUrl,
-                    "tabindex", i);
-        let json = await getChat(spaceNameUrl);
-        let members = json.members;
+        let chatCfg = { chat: spaceName, url: spaceNameUrl, tabIndex: i};
+        //  console.log("getChats chatCfg", chatCfg);
         let membersNotMe = members.filter(member => member != config.me);
         let photos = await Promise.all(membersNotMe.map(getUserPhoto))
         // console.log("members", photos);
@@ -325,8 +326,8 @@ async function getChatPeople(pattern) {
     let list = document.querySelector("#peoplelist");
     list.classList.remove("hidden");
 
-    let patternFilter = pattern == "" ? person => true
-        : person => person.name.startsWith(pattern);
+    let patternFilter = pattern == ""
+        ? person => true : person => person.name.startsWith(pattern);
     let response = await fetch(getPeopleListUrl());
     let chatPeople = await response.json();
     Array.from(list.children).forEach(node => {
@@ -342,7 +343,8 @@ async function getChatPeople(pattern) {
 
             // make an id for the chat?
             let people = name + "," + config.me;
-            a.setAttribute("href", "/nichat/chat/?people=" + people);
+            a.setAttribute("href", "/nichat/chat/");
+            a.setAttribute("data-invite", people);
             let img = document.createElement("img");
             img.setAttribute("src", "/nichat/people/" + name + "/photo");
             a.appendChild(img);
@@ -350,12 +352,15 @@ async function getChatPeople(pattern) {
             a.addEventListener("click", async evt => {
                 evt.preventDefault();
                 evt.stopPropagation();
-                // FIXME - clear up this to send POST data not query
 
+                console.log("evt.target", evt.target);
                 let url = evt.target.getAttribute("href");
-                console.log("chatPeople url", url);
+                let fd = new FormData();
+                let invitees = people.split(",");
+                invitees.forEach(invitee => fd.append("invite", invitee));
                 let response = await fetch(url, {
-                    method: "POST"
+                    method: "POST",
+                    body: fd
                 });
                 let chatLocation = response.headers.get("location");
                 console.log("response", response, chatLocation);

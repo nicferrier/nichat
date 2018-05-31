@@ -157,15 +157,25 @@ exports.boot = function (port, options) {
         connection.send({remote: remoteAddr}, "meta");
     });
 
-    app.post("/nichat/chat/", async function (req,response) {
-        let toInvite = req.query;
-        let body = req.body;
-        console.log("toInvite", toInvite, "body", body);
-        let chatName = await chatAPI.makeChat(toInvite);
-        console.log("chat chatName", chatName);
-        response.set("location", chatName);
-        response.sendStatus(201);
-    });
+    let storage = multer.diskStorage({
+        destination: "images",
+        filename: storeImage
+    })
+    let mpParser = multer({storage: storage});
+    let imageDir = __dirname + "/images";
+    app.use("/nichat/images", express.static(imageDir));
+
+    app.post("/nichat/chat/",
+             mpParser.fields([]),
+             async function (req,response) {
+                 let { invite } = req.body;
+                 // FIXME check invite has "this" user in it
+                 console.log("toInvite", invite);
+                 let chatName = await chatAPI.makeChat(invite);
+                 console.log("chat chatName", chatName);
+                 response.set("location", chatName);
+                 response.sendStatus(201);
+             });
 
     app.get("/nichat/chat/:collection([A-Za-z0-9-]+)",
             async function (req, response) {
@@ -185,13 +195,6 @@ exports.boot = function (port, options) {
                 }
             });
 
-    let storage = multer.diskStorage({
-        destination: "images",
-        filename: storeImage
-    })
-    let mpParser = multer({storage: storage});
-    let imageDir = __dirname + "/images";
-    app.use("/nichat/images", express.static(imageDir));
     /* 
        TODO
 
@@ -220,7 +223,7 @@ exports.boot = function (port, options) {
                  let urlArray = req.url.split("/");
                  let chatName = urlArray[urlArray.length - 1];
                  console.log("chat post - name", chatName, "data", data);
-                 await chatstore.saveChat(chatName, from, to, textJson, new Date());
+                 await chatAPI.saveChat(chatName, from, to, textJson, new Date());
                  Object.keys(connections).forEach(connectionKey => {
                      let connection = connections[connectionKey];
                      data["type"] = "from";
