@@ -212,12 +212,12 @@ async function getChats() {
         //  console.log("getChats chatCfg", chatCfg);
         let membersNotMe = members.filter(member => member != config.me);
         let photos = await Promise.all(membersNotMe.map(getUserPhoto))
-        // console.log("members", photos);
+        console.log("getChats members", photos);
         let section = document.createElement("a");
         section.setAttribute("href", getSpaceNameUrl(spaceName));
         section.setAttribute("data-chatname", chat);
         section.setAttribute("tabindex", i + 1);
-        section.textContent = chat;
+        section.textContent = membersNotMe.join(",");
         let img = document.createElement("img");
         img.src = photos[0];
         section.appendChild(img);
@@ -353,18 +353,27 @@ async function getChatPeople(pattern) {
                 evt.preventDefault();
                 evt.stopPropagation();
 
-                console.log("evt.target", evt.target);
                 let url = evt.target.getAttribute("href");
                 let fd = new FormData();
                 let invitees = people.split(",");
                 invitees.forEach(invitee => fd.append("invite", invitee));
-                let response = await fetch(url, {
+                let response = await fetch("/nichat/chat/", {
                     method: "POST",
                     body: fd
                 });
                 let chatLocation = response.headers.get("location");
                 console.log("response", response, chatLocation);
+
+                Array.from(list.children).forEach(node => {
+                    list.removeChild(node)
+                });
+                
+                let chatUrl = getSpaceNameUrl(chatLocation);
+                console.log("chatUrl", chatUrl);
+                //getAndDisplayChat(chatUrl);  -- think the UI just does this because redirect
             });
+
+            // FIXME add esc handler to get rid of people list?
 
             let text = document.createElement("span");
             text.textContent = name;

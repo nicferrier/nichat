@@ -134,6 +134,7 @@ exports.boot = function (port, options) {
         console.log("get chats", req.session.user);
         if (req.session.user !== undefined) {
             let result = await chatAPI.getChats(req.session.user);
+            console.log("get chats", result);
             response.json(result);
         }
         else {
@@ -168,6 +169,7 @@ exports.boot = function (port, options) {
     app.post("/nichat/chat/",
              mpParser.fields([]),
              async function (req,response) {
+                 console.log("chat POST");
                  let { invite } = req.body;
                  // FIXME check invite has "this" user in it
                  console.log("toInvite", invite);

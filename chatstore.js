@@ -67,17 +67,17 @@ exports.makeAPI = function (dbClient) {
             }
             
             let sql = await sqlFile("make-chat.sql");
-            let result = await dbClient.query(sql, [JSON.stringify(inviteeList)]);
+            let jsonInviteeList = JSON.stringify(inviteeList);
+            let result = await dbClient.query(sql, [jsonInviteeList]);
             let { rowCount, rows } = result;
             if (rowCount < 1) {
                 throw new Error("make chat returned too few rows");
             }
-            let [{ name } ] = rows;
-            return name;
+            let [{ makechat } ] = rows;
+            return makechat;
         },
 
         getChats: async function(userFor) {
-            console.log("getChats", userFor);
             let sql = await sqlFile("get-chats.sql");
             let result = await dbClient.query(sql, [userFor]);
             let { rowCount, rows } = result;
