@@ -188,7 +188,7 @@ exports.boot = function (port, options) {
                 if (json == "1") {
                     response.status(200);
                     let chatJson = await chatAPI.getChat(collection);
-                    response.json(chatJson)
+                    response.json(chatJson);
                 }
                 else {
                     let path = process.cwd() + "/www/index.html";
@@ -224,6 +224,7 @@ exports.boot = function (port, options) {
                  data.text = textJson;
                  let urlArray = req.url.split("/");
                  let chatName = urlArray[urlArray.length - 1];
+                 data.chatName = chatName;
                  console.log("chat post - name", chatName, "data", data);
                  await chatAPI.saveChat(chatName, from, to, textJson, new Date());
                  Object.keys(connections).forEach(connectionKey => {

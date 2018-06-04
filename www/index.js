@@ -129,6 +129,11 @@ async function queueMessage(msgTime, text, toSpace, from, workerPort) {
 }
 
 function displayChat(json) {
+    console.log("displayChat called!");
+    let article = document.querySelector("body article");
+    article.classList.remove("empty");
+    article.querySelector("div").classList.remove("hidden");
+    
     let { url, name, messages } = json;
     history.pushState(config.state, name, url);
     document.querySelector(".chat-header")
@@ -259,7 +264,7 @@ function getChatNameOrEmpty() {
     console.log("getChatNameOrEmpty url", url, document.location.pathname);
     let [ _, chat, resource, name ] = url;
     if (resource == "chat") {
-        return name;
+        return [name];
     }
     return [];
 }
@@ -466,11 +471,11 @@ async function init (commsWorker) {
     });
 
     let chatNameOrEmpty = getChatNameOrEmpty();
-    console.log("chatNameOrEmpty", chatNameOrEmpty);
+    console.log("init chatNameOrEmpty", chatNameOrEmpty);
     if (chatNameOrEmpty instanceof Array
        && chatNameOrEmpty.length > 0) {
         let chatUrl = document.location.href;
-        console.log("chatNameOrEmpty chatUrl", chatUrl);
+        console.log("init chatNameOrEmpty chatUrl", chatUrl);
         getAndDisplayChat(chatUrl);
     }
 
@@ -501,7 +506,8 @@ window.addEventListener("load", evt => {
         let data = msgEvt.data;
         console.log("worker data", data);
         let object = JSON.parse(data);
-        let currentChatUrl = document.querySelector("body article")
+        let currentChatUrl = document
+            .querySelector("body article")
             .getAttribute("data-url");
         let { from, to, text } = object;
         if (from != me && to == currentChatUrl) {

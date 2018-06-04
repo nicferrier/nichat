@@ -109,11 +109,9 @@ body {
 }
 
 
-body article {
-    display: flex;
+body > article {
+    width: 100%;
     height: 100%;
-    flex: 1;
-    flex-direction: column;
     background-color: #F5F5F5;
 }
 
@@ -125,6 +123,13 @@ article.empty {
 
 article.empty > div.hidden > section {
     display: none !important;
+}
+
+body > article > div {
+    flex: 1;
+    flex-direction: column;
+    display: flex;
+    height: 100%;
 }
 
 .chat-header {
@@ -149,7 +154,6 @@ article.empty > div.hidden > section {
     flex-grow: 2;
     padding-left: 15px;
     padding-right: 15px;
-    height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
 }
