@@ -38,15 +38,17 @@ exports.start = function () {
     console.log("setting up eliza");
     let eliza = new ElizaBot();
     eliza.getInitial("hello eliza");
-    var es = new EventSource("http://localhost:8081/nichat/comms");
+    let es = new EventSource("http://localhost:8081/nichat/comms");
     es.addEventListener("chat", ev => {
         let packet = JSON.parse(ev.data);
         console.log("eliza packet", packet);
+
         let { from, text, to } = packet;
         if (to.startsWith("http://localhost:8081/nichat/chat/audreyandnic")
             && from != "audrey@localhost") {
             let plainText = joinMap(text);
             let waitMs = Math.floor(Math.random() * Math.floor(4000));
+
             setTimeout(function () {
                 let elizaSays = eliza.transform(plainText);
                 console.log("eliza reply", elizaSays);
