@@ -309,19 +309,21 @@ function initSpeech () {
 }
 
 function clickToFullView(target) {
-    if (target.classList.contains("me")
-        || target.classList.contains("other")) {
-        let targetContent = target.cloneNode(true);
-        let displayContainer = document.querySelector(".fullview");
-        document.querySelector(".fullview article").remove();
-        let newArticle = document.createElement("article");
-        newArticle.appendChild(targetContent);
-        displayContainer.appendChild(newArticle);
-        displayContainer.classList.remove("hidden");
-        document.querySelector(".fullview button").focus();
-    }
-    else {
-        clickToFullView(target.parentElement);
+    if (target != null) {
+        if (target.classList.contains("me")
+            || target.classList.contains("other")) {
+            let targetContent = target.cloneNode(true);
+            let displayContainer = document.querySelector(".fullview");
+            document.querySelector(".fullview article").remove();
+            let newArticle = document.createElement("article");
+            newArticle.appendChild(targetContent);
+            displayContainer.appendChild(newArticle);
+            displayContainer.classList.remove("hidden");
+            document.querySelector(".fullview button").focus();
+        }
+        else {
+            clickToFullView(target.parentElement);
+        }
     }
 }
 
@@ -458,9 +460,11 @@ async function init (commsWorker) {
             let now = new Date();
             let text = hton.htonStringify(msgInput);
             console.log("msgInput text", text);
-            let spaceUrl = document.querySelector("body article")
+            let spaceUrl = document
+                .querySelector("body > article > div")
                 .getAttribute("data-url");
-            queueMessage(now, text, spaceUrl, me, commsWorker.port);
+            console.log("spaceUrl is", spaceUrl);
+            queueMessage(now, text, spaceUrl, config.me, commsWorker.port);
 
             msgInput.textContent = "";
             keyEvt.preventDefault();
@@ -510,7 +514,7 @@ window.addEventListener("load", evt => {
             .querySelector("body article")
             .getAttribute("data-url");
         let { from, to, text } = object;
-        if (from != me && to == currentChatUrl) {
+        if (from != config.me && to == currentChatUrl) {
             displayMessage(new Date(), text, to, from);
             incommingMessage(text);
         }

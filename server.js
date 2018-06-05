@@ -131,10 +131,10 @@ exports.boot = function (port, options) {
     // Chat stuff
     
     app.get("/nichat/chats/", async function (req, response) {
-        console.log("get chats", req.session.user);
+        console.log("get chats for", req.session.user);
         if (req.session.user !== undefined) {
             let result = await chatAPI.getChats(req.session.user);
-            console.log("get chats", result);
+            // console.log("get chats", result);
             response.json(result);
         }
         else {
@@ -169,7 +169,7 @@ exports.boot = function (port, options) {
     app.post("/nichat/chat/",
              mpParser.fields([]),
              async function (req,response) {
-                 console.log("chat POST");
+                 console.log("chat create POST");
                  let { invite } = req.body;
                  // FIXME check invite has "this" user in it
                  console.log("toInvite", invite);
@@ -188,6 +188,7 @@ exports.boot = function (port, options) {
                 if (json == "1") {
                     response.status(200);
                     let chatJson = await chatAPI.getChat(collection);
+                    console.log("chatJson for", collection, chatJson);
                     response.json(chatJson);
                 }
                 else {

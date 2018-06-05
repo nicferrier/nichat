@@ -102,13 +102,15 @@ exports.makeAPI = function (dbClient) {
                 return []
             }
             else {
+                return result.rows;
             }
         },
 
         // ignoring the date for now
-        saveChat: async function (chat, from, to, text, date) {
+        saveChat: async function (chatName, from, to, text, date) {
+            let jsonData = JSON.stringify(text);
             let sql = await sqlFile("add-message.sql");
-            let result = await dbClient.query(sql, [chat, from, to, text]);
+            let result = await dbClient.query(sql, [chatName, from, to, jsonData]);
             let { rowCount, rows } = result;
             if (rowCount < 1) {
                 return []
