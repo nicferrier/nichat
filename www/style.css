@@ -29,7 +29,6 @@ body {
     height: 100%;
     margin-right: 0px;
     padding-right: 0px;
-    overflow-y: auto;
 }
 
 .indexctrl {
@@ -52,6 +51,9 @@ body {
     display: block;
     margin: 5px;
     height: 60px;
+    width: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
     font-size: 8pt;
     text-decoration: none;
     border-bottom: solid 1px #DADADA;
@@ -240,7 +242,7 @@ body > article > div {
 
 
 .entry {
-    height: 200px;
+    height: 120px;
     flex: initial;
     flex-direction: column;
     display: flex;

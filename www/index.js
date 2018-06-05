@@ -129,7 +129,7 @@ async function queueMessage(msgTime, text, toSpace, from, workerPort) {
 }
 
 function displayChat(json) {
-    console.log("displayChat called!");
+    console.log("displayChat called!", json);
     let article = document.querySelector("body article");
     article.classList.remove("empty");
     article.querySelector("div").classList.remove("hidden");
@@ -166,7 +166,7 @@ function displayChat(json) {
 
 async function getChat(spaceNameUrl) {
     let chatJsonUrl = spaceNameUrl + "?json=1";
-    console.log("getChat", chatJsonUrl);
+    console.log("getChat url", chatJsonUrl);
     let response = await fetch(chatJsonUrl);
     console.log("getChat response", response);
     let jsonData = await response.json();
@@ -181,7 +181,7 @@ function getSpaceNameUrl(name) {
         + document.location.pathname.split("/")[1]
         + "/chat/"
         + name;
-    console.log("getSpaceNameUrl", url);
+    // console.log("getSpaceNameUrl", url);
     return url;
 }
 
@@ -194,6 +194,7 @@ function getChatListUrl() {
 }
 
 async function getAndDisplayChat(url) {
+    console.log("getAndDisplayChat", url);
     let chatJson = await getChat(url);
     displayChat(chatJson);
 }

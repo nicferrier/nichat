@@ -188,8 +188,25 @@ exports.boot = function (port, options) {
                 if (json == "1") {
                     response.status(200);
                     let chatJson = await chatAPI.getChat(collection);
-                    console.log("chatJson for", collection, chatJson);
-                    response.json(chatJson);
+                    console.log("get chat messages chatJson", chatJson);
+                    if (chatJson.length > 0) {
+                        let msgs = chatJson.map(chat => {
+                            return {
+                                from: chat.from,
+                                to: chat.to,
+                                datetime: chat.when,
+                                text: chat.msg
+                            }});
+                        let json = {
+                            url: chatJson[0].to,
+                            name: chatJson[0].chatname,
+                            messages: msgs
+                        };
+                        response.json(json);
+                    }
+                    else {
+                        response.json({ messages: [] });
+                    }
                 }
                 else {
                     let path = process.cwd() + "/www/index.html";
