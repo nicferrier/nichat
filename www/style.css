@@ -137,7 +137,8 @@ body > article > div {
 }
 
 .chat-header {
-    height: 180px;
+    min-height: 60px;
+    max-height: 60px;
     margin: 1px;
     flex: initial;
     border-bottom: solid 1px #E1E1E1;
