@@ -164,7 +164,20 @@ exports.boot = function (port, options) {
     })
     let mpParser = multer({storage: storage});
     let imageDir = __dirname + "/images";
-    app.use("/nichat/images", express.static(imageDir));
+    // app.use("/nichat/images", express.static(imageDir));
+
+    app.get("/nichat/images/:image([A-Za-z0-9._-]+)", async (req, response) => {
+        let { image } = req.params;
+        console.log("image", image);
+        let result = await chatAPI.getArtifact(image);
+        if (result.error === undefined) {
+            response.set("content-type", "image/png");
+            response.send(result.data);
+        }
+        else {
+            response.sendStatus(404);
+        }
+    });
 
     app.post("/nichat/chat/",
              mpParser.fields([]),
@@ -215,20 +228,14 @@ exports.boot = function (port, options) {
                 }
             });
 
-    /* 
-       TODO
-
-       when a chat is posted with an image reference in it, rewrite
-       the img reference and move the img to the relevant chat store
-
-     */
     app.post("/nichat/chat/:collection([A-Za-z0-9-]+);imageUpload",
              mpParser.single("image"),
-             function (req, response) {
+             async function (req, response) {
                  console.log("image uploader");
                  let imageFile = req.file;
                  console.log("image uploader got file", imageFile);
-                 response.set("Location", "/nichat/" + imageFile.path);
+                 let dbFilename = await chatAPI.saveArtifact(imageFile);
+                 response.set("Location", "/nichat/images/" + dbFilename);
                  response.sendStatus(201);
              });
 
@@ -317,7 +324,7 @@ exports.boot = function (port, options) {
         });
 
         console.log("listening on " + port);
-        eliza.start();
+        eliza.start(dbClient);
     });
 };
 

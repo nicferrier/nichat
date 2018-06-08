@@ -1,55 +1,7 @@
-// facilities for storing chats.
+// Facilities for storing chats.
 
 const fs = require("./fsasync.js");
 const path = require("path");
-
-
-// File based interface
-
-exports.getChat = async function (name, outFunc) {
-    let filename = "chat-store/" + name + ".json";
-    console.log("getChat file", filename);
-    let fileData = await fs.promises.readFile(filename);
-    let json = JSON.parse(fileData);
-    return json;
-};
-
-async function makeDirs (path) {
-    let exists = await fs.promises.exists(path);
-    if (!exists) {
-        await fs.promises.mkdir(path);
-    }
-}
-
-async function readJson(path) {
-    let fileData = await fs.promises.readFile(path);
-    let jsonData = JSON.parse(fileData);
-    return jsonData;
-}
-
-exports.saveChat = async function (chat, from, to, text, date) {
-    let dir = "chat-store";
-    await makeDirs(dir);
-    let filename = dir + "/" + chat + ".json";
-    let filenameExists = await fs.promises.exists(filename);
-    let json = filenameExists ? await readJson(filename) : {
-        name: chat,
-        members: [from, to],
-        messages: []
-    };
-    let dateNum = date.valueOf();
-    let newMessage = {
-        "datetime": dateNum,
-        "from": from,
-        "to": to,
-        "text": text
-    };
-    console.log("chatstore newMessage", newMessage);
-    json.messages.push(newMessage);
-    await fs.promises.writeFile(filename, JSON.stringify(json, null, 2));
-}
-
-
 
 // SQL interface
 
@@ -106,6 +58,36 @@ exports.makeAPI = function (dbClient) {
             }
         },
 
+        getArtifact: async function (fileName) {
+            let sql = await sqlFile("get-artifact-file.sql");
+            try {
+                let result = await dbClient.query(sql, [fileName]);
+                let { rows } = result;
+                if (rows.length < 1) {
+                    return { error: new Error("not found") };
+                }
+                else {
+                    let [ row ] = rows;
+                    let { data } = row;
+                    let binary = Buffer.from(data, 'base64');
+                    return { data: binary };
+                }
+            }
+            catch (e) {
+                console.log("error", e);
+                return { error: e };
+            }
+        },
+
+        saveArtifact: async function (artifactFile) {
+            let sql = await sqlFile("add-artifact.sql");
+            let artifactFileData = await fs.promises.readFile(artifactFile.path, "base64");
+            let result = await dbClient.query(sql, [artifactFile.filename, artifactFileData]);
+            let { rowCount, rows } = result;
+            let [ { filename } ] = rows;
+            return filename;
+        },
+
         // ignoring the date for now
         saveChat: async function (chatName, from, to, text, date) {
             let jsonData = JSON.stringify(text);
@@ -120,17 +102,5 @@ exports.makeAPI = function (dbClient) {
         }
     };
 };
-
-
-
-function testcode () {
-    chatstore.saveChat(
-        "rajandnic",
-        "rajesh.shah@localhost",
-        "nicferrier@localhost",
-        "I'm in new york, going for pancakes.",
-        new Date()
-    );
-}
 
 // end

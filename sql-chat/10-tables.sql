@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS chat (
 SELECT create_or_replace_replication_trigger('chat');
 
 
-CREATE SEQUENCE IF NOT EXISTS message_id;
+-- Messages are the things that we send each other
 
+CREATE SEQUENCE IF NOT EXISTS message_id;
 
 CREATE TABLE IF NOT EXISTS message (
 "id" INTEGER,
@@ -24,5 +25,37 @@ CREATE TABLE IF NOT EXISTS message (
 );
 
 SELECT create_or_replace_replication_trigger('message');
+
+
+-- Artifacts are things like photos in chats
+
+CREATE SEQUENCE IF NOT EXISTS artifact_id;
+
+CREATE TABLE IF NOT EXISTS artifact (
+"id" INTEGER,
+"filename" text,
+"data" text,
+"created" TIMESTAMP WITH TIME ZONE
+);
+
+
+SELECT create_or_replace_replication_trigger('artifact');
+
+
+-- Eliza talks on chats if you want her to
+
+CREATE SEQUENCE IF NOT EXISTS eliza_chat_id;
+
+CREATE TABLE IF NOT EXISTS eliza_chat (
+"id" INTEGER,
+"chat_id" INTEGER,
+"identity" text,
+"is_on" BOOLEAN
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS eliza_chat_ids_identities
+ON eliza_chat (chat_id, identity);
+
+SELECT create_or_replace_replication_trigger('artifact');
 
 -- end

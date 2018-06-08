@@ -6,6 +6,8 @@ body {
     justify-content: center;
     align-items: stretch;
     flex-direction: row;
+    height: 100%;
+    overflow: hidden;
 }
 
 .control {
@@ -242,7 +244,8 @@ body > article > div {
 
 
 .entry {
-    height: 120px;
+    min-height: 120px;
+    max-height: 120px;
     flex: initial;
     flex-direction: column;
     display: flex;

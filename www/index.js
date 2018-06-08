@@ -512,14 +512,15 @@ window.addEventListener("load", evt => {
         console.log("worker data", data);
         let object = JSON.parse(data);
         let currentChatUrl = document
-            .querySelector("body article")
+            .querySelector("body > article > div")
             .getAttribute("data-url");
         let { from, to, text } = object;
+        console.log("worker message (1)", config.me, from, currentChatUrl, to); 
         if (from != config.me && to == currentChatUrl) {
             displayMessage(new Date(), text, to, from);
             incommingMessage(text);
         }
-        console.log("worker message", msgEvt, from, to, text);
+        console.log("worker message", from, to, text, config.me, msgEvt);
     });
     commsWorker.port.start();
 
