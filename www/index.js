@@ -134,13 +134,15 @@ function displayChat(json) {
     article.classList.remove("empty");
     article.querySelector("div").classList.remove("hidden");
     
-    let { url, name, messages } = json;
+    let { url, name, members, messages } = json;
+    let membersNotMe = members.filter(member => member != config.me);
+    
     history.pushState(config.state, name, url);
     document.querySelector(".chat-header")
         .parentNode
         .setAttribute("data-url", url);
     let headerH2 = document.querySelectorAll(".chat-header h2");
-    headerH2[0].textContent = name;
+    headerH2[0].textContent = membersNotMe.join(",");
     let div = document.querySelector(".chat div");
     if (div != null) {
         console.log("div", div);
@@ -515,7 +517,6 @@ window.addEventListener("load", evt => {
             .querySelector("body > article > div")
             .getAttribute("data-url");
         let { from, to, text } = object;
-        console.log("worker message (1)", config.me, from, currentChatUrl, to); 
         if (from != config.me && to == currentChatUrl) {
             displayMessage(new Date(), text, to, from);
             incommingMessage(text);

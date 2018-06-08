@@ -1,6 +1,8 @@
 const EventSource = require("eventsource");
 const FormData = require('form-data');
 const ElizaBot = require("./elizabot.js");
+const path = require("path");
+const fs = require("./fsasync.js");
 
 // We can get an eliza to talk, sort of like this
 function testEliza () {
@@ -34,33 +36,76 @@ function joinMap(map) {
     return result.join("");
 }
 
-exports.start = function () {
+async function sqlFile(file) {  // this is also in chatstore
+    let fileName = path.join(__dirname, "app-sql-chat", file);
+    let sql = await fs.promises.readFile(fileName);
+    return sql;
+}
+
+// Should be keyed by a chat|identity and have an instance of Eliza
+let elizaChats = {
+};
+
+function getEliza(chatName, correspondant, identity) {
+    let key = chatName + "|" + identity;
+    let elizaChat = elizaChats[key];
+    if (elizaChat === undefined) {
+        elizaChat = {
+            correspondant: correspondant,
+            identity: identity,
+            eliza: new ElizaBot()
+        };
+        elizaChats[key] = elizaChat;
+        elizaChat.eliza.getInitial("hello eliza");
+    }
+    return elizaChat;
+}
+
+exports.start = function (dbClient) {
     console.log("setting up eliza");
-    let eliza = new ElizaBot();
-    eliza.getInitial("hello eliza");
     let es = new EventSource("http://localhost:8081/nichat/comms");
-    es.addEventListener("chat", ev => {
+    es.addEventListener("chat", async ev => {
         let packet = JSON.parse(ev.data);
-        console.log("eliza packet", packet);
+        let plainText = joinMap(packet.text);
+        console.log("eliza packet", packet, "plainText>", plainText);
 
-        let { from, text, to } = packet;
-        if (to.startsWith("http://localhost:8081/nichat/chat/audreyandnic")
-            && from != "audrey@localhost") {
-            let plainText = joinMap(text);
-            let waitMs = Math.floor(Math.random() * Math.floor(4000));
+        if (plainText.startsWith("eliza be")) {
+            let [_, who] = new RegExp("eliza be (.*)").exec(plainText);
+            console.log("register eliza with", packet.chatName);
+            let sql = await sqlFile("turn-on-eliza.sql");
+            try {
+                let result = await dbClient.query(
+                    sql,
+                    [packet.chatName, who, true]
+                );
+            }
+            catch(e) {
+                console.log("eliza could not register to", packet.chatName, e);
+            }
+        }
 
-            setTimeout(function () {
-                let elizaSays = eliza.transform(plainText);
-                console.log("eliza reply", elizaSays);
-                let form = new FormData();
-                form.append("from", "audrey@localhost",);
-                form.append("to", to);
-                form.append("text", JSON.stringify([elizaSays]));
-                let url = "http://localhost:8081/nichat/chat/audreyandnic?json=1";
-                form.submit(url, (err, res) => {
-                    console.log("response to eliza post", res.statusCode);
-                });
-            }, waitMs);
+        let sql = await sqlFile("is-eliza-on.sql");
+        let isElizaOn = await dbClient.query(sql, [packet.chatName]);
+        let { is_on, identity: who } = isElizaOn.rows[0];
+        if (is_on) {
+            let { from, text, to } = packet;
+            let { eliza, correspondant } = getEliza(packet.chatName, from);
+            if (from == correspondant) {
+                let waitMs = Math.floor(Math.random() * Math.floor(2000));
+                
+                setTimeout(function () {
+                    let elizaSays = eliza.transform(plainText);
+                    console.log("eliza reply", elizaSays);
+                    let form = new FormData();
+                    form.append("from", who);
+                    form.append("to", to);
+                    form.append("text", JSON.stringify([elizaSays]));
+                    let url = packet.to + "?json=1";
+                    form.submit(url, (err, res) => {
+                        console.log("response to eliza post", res.statusCode);
+                    });
+                }, waitMs);
+            }
         }
     });
 }

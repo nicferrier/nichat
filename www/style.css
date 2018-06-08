@@ -137,21 +137,26 @@ body > article > div {
 }
 
 .chat-header {
-    height: 50px;
-    line-height: 50px;
+    height: 180px;
     margin: 1px;
     flex: initial;
     border-bottom: solid 1px #E1E1E1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
 }
 
 .chat-header h2 {
-    text-align: right;
-    display: inline;
-    vertical-align: top;
+    margin: 10px;
+    display: block;
 }
 
 .chat-header span {
     vertical-align: middle;
+}
+
+.chat-header > .actions {
 }
 
 .chat {
@@ -244,8 +249,8 @@ body > article > div {
 
 
 .entry {
-    min-height: 120px;
-    max-height: 120px;
+    min-height: 160px;
+    max-height: 160px;
     flex: initial;
     flex-direction: column;
     display: flex;
@@ -255,7 +260,7 @@ body > article > div {
 div.emoticons {
     transition: all 0.8s;
     transition-property: height, padding;
-    height: 26px;
+    height: 60x;
     background-color: White;
     overflow: auto;
     padding: 2px;

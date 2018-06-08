@@ -22,47 +22,40 @@ node server.js
 Emoticons came from [here](https://unicode.org/emoji/charts/emoji-ordering.html)
 
 
+## Message storage and formats
 
-# Bits of working out
+The messages between people are collected with a rich text editor and
+converted into a JSON representation of HTML.
 
-people and chats
+An example:
 
-## auth
+```
+[  {                                                                  
+        "IMG": {
+            "src": "/nichat/images/eec5d411eac53119f76a8b4a9b8e6023.png
+            "width": null,
+            "height": null
+        }
+    },
+    " < this is a picture. good init."
+]
+```
 
-authenticate to people
-but we need your userid in chat
+## Image and other artifact storage
 
-one time password generation
+Images are posted to the server and collected in files, but then moved
+into Postgres. So the storage directories are very temporary.
 
-stick it on the session
+### Attachments
 
-if chat authenticates to people with it then give it something
-
-
-## people 
-
-* you register and authenticate - maybe this is proxied
-
-* search people
- * parameters
-  * pattern
- * result
-  * description of who matched the search
-
-
-## chats
-
-* call people for the list of people
- * merge the list of chats
+nichat accepts pasted artifacts into the chat, the artifacts are
+uploaded as images are and then referred to from the chat HTML (which
+is encoded as JSON). No work is done to garbage collect images or
+other artifacts that have been uploaded but not referred to.
 
 
-## chat creation
+## FIXMEs
 
-invite
-
-POST members -> chatservice -> makeChat - db insert
-
-
-
-
+* When we upload an artifact we need to handle filename clashes
+* Refuse chat from someone not in it (in the chat POST)
 

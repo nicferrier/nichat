@@ -47,14 +47,23 @@ exports.makeAPI = function (dbClient) {
         },
 
         getChat: async function(chatName) {
+            let membersSql = await sqlFile("get-chat-members.sql");
+            let membersResult = await dbClient.query(membersSql, [chatName]);
+            let {rows: [ {members} ]} = membersResult
             let sql = await sqlFile("get-chat.sql");
             let result = await dbClient.query(sql, [chatName]);
             let { rowCount, rows } = result;
             if (rowCount < 1) {
-                return []
+                return {
+                    members: members,
+                    messages: []
+                };
             }
             else {
-                return result.rows;
+                return {
+                    members: members,
+                    messages: result.rows
+                };
             }
         },
 

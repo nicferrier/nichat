@@ -179,6 +179,7 @@ exports.boot = function (port, options) {
         }
     });
 
+    // Handle invites
     app.post("/nichat/chat/",
              mpParser.fields([]),
              async function (req,response) {
@@ -200,10 +201,9 @@ exports.boot = function (port, options) {
                 let { json } = req.query;
                 if (json == "1") {
                     response.status(200);
-                    let chatJson = await chatAPI.getChat(collection);
-                    console.log("get chat messages chatJson", chatJson);
-                    if (chatJson.length > 0) {
-                        let msgs = chatJson.map(chat => {
+                    let { members, messages } = await chatAPI.getChat(collection);
+                    if (messages.length > 0) {
+                        let msgs = messages.map(chat => {
                             return {
                                 from: chat.from,
                                 to: chat.to,
@@ -211,14 +211,18 @@ exports.boot = function (port, options) {
                                 text: chat.msg
                             }});
                         let json = {
-                            url: chatJson[0].to,
-                            name: chatJson[0].chatname,
+                            url: messages[0].to,
+                            name: messages[0].chatname,
+                            members: members,
                             messages: msgs
                         };
                         response.json(json);
                     }
                     else {
-                        response.json({ messages: [] });
+                        response.json({
+                            members: members,
+                            messages: []
+                        });
                     }
                 }
                 else {
