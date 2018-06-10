@@ -10,7 +10,7 @@ I try to keep nichat as free of dependencies as possible, but you do need:
 * nodejs v8 or above
 * a modern browser that does ES6 modules
 * postgresql-10
- * If you're on Windows 10, or Ubuntu or RHEL 7 then we nichat will do
+** If you're on Windows 10, or Ubuntu or RHEL 7 then we nichat will do
    it's best to find your Postgres binaries and then create it's own
    instance.
 
